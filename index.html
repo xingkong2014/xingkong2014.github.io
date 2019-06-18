@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-<title>Hexo</title>
+<title>星空工作室</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
     <meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
+<meta property="og:title" content="星空工作室">
 <meta property="og:url" content="http://yoursite.com/index.html">
-<meta property="og:site_name" content="Hexo">
-<meta property="og:locale" content="default">
+<meta property="og:site_name" content="星空工作室">
+<meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/og_image.png">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hexo">
+<meta name="twitter:title" content="星空工作室">
 <meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
 
 
@@ -89,7 +89,7 @@
         <div class="navbar-brand is-flex-center">
             <a class="navbar-item navbar-logo" href="/">
             
-                <img src="/images/logo.svg" alt="Hexo" height="28">
+                <img src="/images/logo.svg" alt="星空工作室" height="28">
             
             </a>
         </div>
@@ -122,7 +122,7 @@
                 
                 
                 
-                <a class="navbar-item search" title="Search" href="javascript:;">
+                <a class="navbar-item search" title="搜索" href="javascript:;">
                     <i class="fas fa-search"></i>
                 </a>
                 
@@ -141,13 +141,13 @@
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
             <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-06-14T08:54:59.000Z">2019-06-14</time>
+                <time class="level-item has-text-grey" datetime="2019-06-18T03:42:19.000Z">2019-06-18</time>
                 
                 
                 <span class="level-item has-text-grey">
                     
                     
-                    a few seconds read (About 0 words)
+                    3 分钟 读完 (大约 465 个字)
                 </span>
                 
                 
@@ -156,11 +156,39 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                <a class="has-link-black-ter" href="/2019/06/14/test-my-site/">test_my_site</a>
+                <a class="has-link-black-ter" href="/2019/06/18/以太坊C-源码解析（一）Worker类/">以太坊C++源码解析（一）Worker类</a>
             
         </h1>
         <div class="content">
-            
+            <p>在ethereum项目中<code>Worker</code>类是许多类的基类，子类们继承<code>Worker</code>类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说<code>Worker</code>类是一份公用代码类，那么是什么代码这么重要呢？<br>在Worker类中我们直接来看其成员，可以看到有两个重要的成员变量：</p>
+<pre><code>std::unique_ptr&lt;std::thread&gt; m_work;
+mutable std::condition_variable m_state_notifier;</code></pre><p>看到这里经验丰富的程序员们应该就能想到这个是经典的生产消费者队列的C++11实现方式，还不了解生产消费者队列的同学可以暂停一下，先搜索一下相关知识再继续。<br>然后我们再来看两个重要的成员函数：</p>
+<pre><code>void startWorking();
+void stopWorking();</code></pre><p>这个其实就是启动和停止<code>m_work</code>这个线程了。<br>在<code>startWorking()</code>函数内部我们能看到线程的初始化过程，线程函数体用的是lambda表达式，其中最重要的一段我列出来：</p>
+<pre><code>try
+{
+    startedWorking();
+    workLoop();
+    doneWorking();
+}
+catch (std::exception const&amp; _e)
+{
+    cwarn &lt;&lt; &quot;Exception thrown in Worker thread: &quot; &lt;&lt; _e.what();
+}</code></pre><p>这个线程最重要的是执行了这三个操作，<code>startedWorking()</code>用于<code>workLoop()</code>前的准备工作,<code>doneWorking()</code>用于<code>workLoop()</code>后的收尾工资，<code>workLoop()</code>内部用一个循环调用了<code>doWork()</code>来做实际的工作：</p>
+<pre><code>void Worker::workLoop()
+{
+    while (m_state == WorkerState::Started)
+    {
+        if (m_idleWaitMs)
+            this_thread::sleep_for(chrono::milliseconds(m_idleWaitMs));
+        doWork();
+    }
+}</code></pre><p>我们再来看这几个函数的定义：</p>
+<pre><code>virtual void startedWorking() {}
+virtual void doWork() {}
+virtual void workLoop();
+virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()</code>有一个默认的实现外，其他函数体都是空的，子类们通过重新实现这几个函数来实现具体的功能，后面我们会看到这些子类们是怎么做的。</p>
+
         </div>
         
         
@@ -187,7 +215,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    a minute read (About 121 words)
+                    1 分钟 读完 (大约 121 个字)
                 </span>
                 
                 
@@ -243,22 +271,22 @@
             <div class="level-item has-text-centered">
                 <div>
                     
-                        <img class="image is-128x128 has-mb-6" src="/images/avatar.png" alt="Your name">
+                        <img class="image is-128x128 has-mb-6" src="/images/images.jpg" alt="星空">
                     
                     
                     <p class="is-size-4 is-block">
-                        Your name
+                        星空
                     </p>
                     
                     
                     <p class="is-size-6 is-block">
-                        Your title
+                        程序员
                     </p>
                     
                     
                     <p class="is-size-6 is-flex is-flex-center has-text-grey">
                         <i class="fas fa-map-marker-alt has-mr-7"></i>
-                        <span>Your location</span>
+                        <span>中国</span>
                     </p>
                     
                 </div>
@@ -268,7 +296,7 @@
             <div class="level-item has-text-centered is-marginless">
                 <div>
                     <p class="heading">
-                        Posts
+                        文章
                     </p>
                     <p class="title has-text-weight-normal">
                         2
@@ -278,7 +306,7 @@
             <div class="level-item has-text-centered is-marginless">
                 <div>
                     <p class="heading">
-                        Categories
+                        分类
                     </p>
                     <p class="title has-text-weight-normal">
                         0
@@ -288,7 +316,7 @@
             <div class="level-item has-text-centered is-marginless">
                 <div>
                     <p class="heading">
-                        Tags
+                        标签
                     </p>
                     <p class="title has-text-weight-normal">
                         0
@@ -297,14 +325,14 @@
             </div>
         </nav>
         <div class="level">
-            <a class="level-item button is-link is-rounded" href="https://github.com/ppoffice" target="_blank">
-                Follow</a>
+            <a class="level-item button is-link is-rounded" href="https://github.com/xingkong2014" target="_blank">
+                关注我</a>
         </div>
         
         
         <div class="level is-mobile">
             
-            <a class="level-item button is-white is-marginless" target="_blank" title="Github" href="https://github.com/ppoffice">
+            <a class="level-item button is-white is-marginless" target="_blank" title="Github" href="https://github.com/xingkong2014">
                 
                 <i class="fab fa-github"></i>
                 
@@ -347,7 +375,7 @@
     <div class="card-content">
         <div class="menu">
         <h3 class="menu-label">
-            Links
+            链接
         </h3>
         <ul class="menu-list">
         
@@ -385,7 +413,7 @@
     <div class="card-content">
         <div class="menu">
             <h3 class="menu-label">
-                Categories
+                分类
             </h3>
             <ul class="menu-list">
             
@@ -403,21 +431,21 @@
 <div class="card widget">
     <div class="card-content">
         <h3 class="menu-label">
-            Recent
+            最新文章
         </h3>
         
         <article class="media">
             
-            <a href="/2019/06/14/test-my-site/" class="media-left">
+            <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="test_my_site">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（一）Worker类">
                 </p>
             </a>
             
             <div class="media-content">
                 <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-14T08:54:59.000Z">2019-06-14</time></div>
-                    <a href="/2019/06/14/test-my-site/" class="has-link-black-ter is-size-6">test_my_site</a>
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-18T03:42:19.000Z">2019-06-18</time></div>
+                    <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="has-link-black-ter is-size-6">以太坊C++源码解析（一）Worker类</a>
                     <p class="is-size-7 is-uppercase">
                         
                     </p>
@@ -452,14 +480,14 @@
     <div class="card-content">
         <div class="menu">
         <h3 class="menu-label">
-            Archives
+            归档
         </h3>
         <ul class="menu-list">
         
         <li>
             <a class="level is-marginless" href="/archives/2019/06/">
                 <span class="level-start">
-                    <span class="level-item">June 2019</span>
+                    <span class="level-item">六月 2019</span>
                 </span>
                 <span class="level-end">
                     <span class="level-item tag">2</span>
@@ -476,7 +504,7 @@
     <div class="card-content">
         <div class="menu">
             <h3 class="menu-label">
-                Tags
+                标签
             </h3>
             <div class="field is-grouped is-grouped-multiline">
                 
@@ -500,21 +528,21 @@
 <div class="card widget">
     <div class="card-content">
         <h3 class="menu-label">
-            Recent
+            最新文章
         </h3>
         
         <article class="media">
             
-            <a href="/2019/06/14/test-my-site/" class="media-left">
+            <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="test_my_site">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（一）Worker类">
                 </p>
             </a>
             
             <div class="media-content">
                 <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-14T08:54:59.000Z">2019-06-14</time></div>
-                    <a href="/2019/06/14/test-my-site/" class="has-link-black-ter is-size-6">test_my_site</a>
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-18T03:42:19.000Z">2019-06-18</time></div>
+                    <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="has-link-black-ter is-size-6">以太坊C++源码解析（一）Worker类</a>
                     <p class="is-size-7 is-uppercase">
                         
                     </p>
@@ -549,14 +577,14 @@
     <div class="card-content">
         <div class="menu">
         <h3 class="menu-label">
-            Archives
+            归档
         </h3>
         <ul class="menu-list">
         
         <li>
             <a class="level is-marginless" href="/archives/2019/06/">
                 <span class="level-start">
-                    <span class="level-item">June 2019</span>
+                    <span class="level-item">六月 2019</span>
                 </span>
                 <span class="level-end">
                     <span class="level-item tag">2</span>
@@ -573,7 +601,7 @@
     <div class="card-content">
         <div class="menu">
             <h3 class="menu-label">
-                Tags
+                标签
             </h3>
             <div class="field is-grouped is-grouped-multiline">
                 
@@ -594,11 +622,11 @@
             <div class="level-start has-text-centered-mobile">
                 <a class="footer-logo is-block has-mb-6" href="/">
                 
-                    <img src="/images/logo.svg" alt="Hexo" height="28">
+                    <img src="/images/logo.svg" alt="星空工作室" height="28">
                 
                 </a>
                 <p class="is-size-7">
-                &copy; 2019 John Doe&nbsp;
+                &copy; 2019 Will Wang&nbsp;
                 Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a>
                 
                 </p>
@@ -640,7 +668,7 @@
 </footer>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
-<script>moment.locale("en");</script>
+<script>moment.locale("zh-CN");</script>
 
 
     
@@ -706,7 +734,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     
 
-<a id="back-to-top" title="Back to Top" href="javascript:;">
+<a id="back-to-top" title="回到顶端" href="javascript:;">
     <i class="fas fa-chevron-up"></i>
 </a>
 <script src="/js/back-to-top.js" defer></script>
@@ -740,7 +768,7 @@ document.addEventListener('DOMContentLoaded', function () {
     <div class="searchbox ins-search">
     <div class="searchbox-container ins-search-container">
         <div class="searchbox-input-wrapper">
-            <input type="text" class="searchbox-input ins-search-input" placeholder="Type something...">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="想要查找什么...">
             <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
         </div>
         <div class="searchbox-result-wrapper ins-section-wrapper">
@@ -752,11 +780,11 @@ document.addEventListener('DOMContentLoaded', function () {
     (function (window) {
         var INSIGHT_CONFIG = {
             TRANSLATION: {
-                POSTS: 'Posts',
-                PAGES: 'Pages',
-                CATEGORIES: 'Categories',
-                TAGS: 'Tags',
-                UNTITLED: '(Untitled)',
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
             },
             CONTENT_URL: '/content.json',
         };

@@ -2,14 +2,14 @@
 <html lang="zh">
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-<title>分类 - 星空工作室</title>
+<title>分类: 以太坊C++源码解析 - 星空工作室</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
     <meta property="og:type" content="website">
 <meta property="og:title" content="星空工作室">
-<meta property="og:url" content="http://yoursite.com/categories/index.html">
+<meta property="og:url" content="http://yoursite.com/categories/以太坊C-源码解析/index.html">
 <meta property="og:site_name" content="星空工作室">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/og_image.png">
@@ -101,7 +101,7 @@
                 
                 <a class="navbar-item" href="/archives">Archives</a>
                 
-                <a class="navbar-item is-active" href="/categories">Categories</a>
+                <a class="navbar-item" href="/categories">Categories</a>
                 
                 <a class="navbar-item" href="/tags">Tags</a>
                 
@@ -134,27 +134,91 @@
     <section class="section">
         <div class="container">
             <div class="columns">
-                <div class="column is-8-tablet is-8-desktop is-6-widescreen has-order-2 column-main">
-<div class="card widget">
+                <div class="column is-8-tablet is-8-desktop is-6-widescreen has-order-2 column-main"><div class="card">
     <div class="card-content">
-        <div class="menu">
-            <h3 class="menu-label">
-                分类
-            </h3>
-            <ul class="menu-list">
-            <li>
-        <a class="level is-marginless" href="/categories/以太坊C-源码解析/">
-            <span class="level-start">
-                <span class="level-item">以太坊C++源码解析</span>
-            </span>
-            <span class="level-end">
-                <span class="level-item tag">1</span>
-            </span>
-        </a></li>
-            </ul>
-        </div>
+        <nav class="breadcrumb" aria-label="breadcrumbs">
+        <ul>
+            <li><a href="/categories">分类</a></li>
+            
+            <li class="is-active"><a href="#" aria-current="page">以太坊C++源码解析</a></li>
+        </ul>
+        </nav>
     </div>
-</div></div>
+</div>
+
+    <div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-06-18T03:42:19.000Z">2019-06-18</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    3 分钟 读完 (大约 465 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                <a class="has-link-black-ter" href="/2019/06/18/以太坊C-源码解析（一）Worker类/">以太坊C++源码解析（一）Worker类</a>
+            
+        </h1>
+        <div class="content">
+            <p>在ethereum项目中<code>Worker</code>类是许多类的基类，子类们继承<code>Worker</code>类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说<code>Worker</code>类是一份公用代码类，那么是什么代码这么重要呢？<br>在Worker类中我们直接来看其成员，可以看到有两个重要的成员变量：</p>
+<pre><code>std::unique_ptr&lt;std::thread&gt; m_work;
+mutable std::condition_variable m_state_notifier;</code></pre><p>看到这里经验丰富的程序员们应该就能想到这个是经典的生产消费者队列的C++11实现方式，还不了解生产消费者队列的同学可以暂停一下，先搜索一下相关知识再继续。<br>然后我们再来看两个重要的成员函数：</p>
+<pre><code>void startWorking();
+void stopWorking();</code></pre><p>这个其实就是启动和停止<code>m_work</code>这个线程了。<br>在<code>startWorking()</code>函数内部我们能看到线程的初始化过程，线程函数体用的是lambda表达式，其中最重要的一段我列出来：</p>
+<pre><code>try
+{
+    startedWorking();
+    workLoop();
+    doneWorking();
+}
+catch (std::exception const&amp; _e)
+{
+    cwarn &lt;&lt; &quot;Exception thrown in Worker thread: &quot; &lt;&lt; _e.what();
+}</code></pre><p>这个线程最重要的是执行了这三个操作，<code>startedWorking()</code>用于<code>workLoop()</code>前的准备工作,<code>doneWorking()</code>用于<code>workLoop()</code>后的收尾工资，<code>workLoop()</code>内部用一个循环调用了<code>doWork()</code>来做实际的工作：</p>
+<pre><code>void Worker::workLoop()
+{
+    while (m_state == WorkerState::Started)
+    {
+        if (m_idleWaitMs)
+            this_thread::sleep_for(chrono::milliseconds(m_idleWaitMs));
+        doWork();
+    }
+}</code></pre><p>我们再来看这几个函数的定义：</p>
+<pre><code>virtual void startedWorking() {}
+virtual void doWork() {}
+virtual void workLoop();
+virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()</code>有一个默认的实现外，其他函数体都是空的，子类们通过重新实现这几个函数来实现具体的功能，后面我们会看到这些子类们是怎么做的。</p>
+
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+</div>
                 
 
 

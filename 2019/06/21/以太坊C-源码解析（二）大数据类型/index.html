@@ -2,19 +2,24 @@
 <html lang="zh">
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-<title>归档: 2019 - 星空工作室</title>
+<title>以太坊C++源码解析（二）大数据类型 - 星空工作室</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-    <meta property="og:type" content="website">
-<meta property="og:title" content="星空工作室">
-<meta property="og:url" content="http://yoursite.com/archives/2019/index.html">
+    <meta name="description" content="我们在C++中常用的表示整形的类型有int, long, unsigned long, int64_t等等，这些类型的长度为32位，64位，一般的情况下就能满足我们的需要了，但是在以太坊里这样的精度类型就显得捉襟见肘了，比如以太坊中常用的货币单位为Wei，而以太币1Ether=10的18次方Wei，这是一个非常大的数，普通的数据类型显然不能用了，我们需要更大的数。 #boost::multipre">
+<meta name="keywords" content="以太坊 C++ 源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="以太坊C++源码解析（二）大数据类型">
+<meta property="og:url" content="http://yoursite.com/2019/06/21/以太坊C-源码解析（二）大数据类型/index.html">
 <meta property="og:site_name" content="星空工作室">
+<meta property="og:description" content="我们在C++中常用的表示整形的类型有int, long, unsigned long, int64_t等等，这些类型的长度为32位，64位，一般的情况下就能满足我们的需要了，但是在以太坊里这样的精度类型就显得捉襟见肘了，比如以太坊中常用的货币单位为Wei，而以太币1Ether=10的18次方Wei，这是一个非常大的数，普通的数据类型显然不能用了，我们需要更大的数。 #boost::multipre">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/og_image.png">
+<meta property="og:updated_time" content="2019-06-21T05:38:04.120Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="星空工作室">
+<meta name="twitter:title" content="以太坊C++源码解析（二）大数据类型">
+<meta name="twitter:description" content="我们在C++中常用的表示整形的类型有int, long, unsigned long, int64_t等等，这些类型的长度为32位，64位，一般的情况下就能满足我们的需要了，但是在以太坊里这样的精度类型就显得捉襟见肘了，比如以太坊中常用的货币单位为Wei，而以太币1Ether=10的18次方Wei，这是一个非常大的数，普通的数据类型显然不能用了，我们需要更大的数。 #boost::multipre">
 <meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
 
 
@@ -89,7 +94,7 @@
         <div class="navbar-brand is-flex-center">
             <a class="navbar-item navbar-logo" href="/">
             
-                <img src="/images/logo.svg" alt="星空工作室" height="28">
+                <img src="/images/logo.svg" alt="以太坊C++源码解析（二）大数据类型" height="28">
             
             </a>
         </div>
@@ -134,69 +139,131 @@
     <section class="section">
         <div class="container">
             <div class="columns">
-                <div class="column is-8-tablet is-8-desktop is-6-widescreen has-order-2 column-main">
-
-<div class="card widget">
-    <div class="card-content">
-        <h3 class="tag is-link">
-        2019
-        </h3>
-        <div class="timeline">
+                <div class="column is-8-tablet is-8-desktop is-6-widescreen has-order-2 column-main"><div class="card">
+    
+    <div class="card-content article ">
         
-            <article class="media">
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-06-21T05:36:35.000Z">2019-06-21</time>
                 
-                <div class="media-content">
-                    <div class="content">
-                        <time class="has-text-grey is-size-7 is-block is-uppercase" datetime="2019-06-21T05:36:35.000Z">2019-06-21</time>
-                        <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="has-link-black-ter is-size-6">以太坊C++源码解析（二）大数据类型</a>
-                        <div class="level article-meta is-mobile">
-                            <div class="level-left">
-                                
-                                <div class="level-item is-size-7 is-uppercase">
-                                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                                </div>
-                                
-                            </div>
-                        </div>
-                    </div>
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
                 </div>
-            </article>
-        
-            <article class="media">
                 
-                <div class="media-content">
-                    <div class="content">
-                        <time class="has-text-grey is-size-7 is-block is-uppercase" datetime="2019-06-18T03:42:19.000Z">2019-06-18</time>
-                        <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="has-link-black-ter is-size-6">以太坊C++源码解析（一）Worker类</a>
-                        <div class="level article-meta is-mobile">
-                            <div class="level-left">
-                                
-                                <div class="level-item is-size-7 is-uppercase">
-                                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                                </div>
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        
-            <article class="media">
                 
-                <div class="media-content">
-                    <div class="content">
-                        <time class="has-text-grey is-size-7 is-block is-uppercase" datetime="2019-06-14T08:50:13.607Z">2019-06-14</time>
-                        <a href="/2019/06/14/hello-world/" class="has-link-black-ter is-size-6">Hello World</a>
-                        <div class="level article-meta is-mobile">
-                            <div class="level-left">
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        
+                <span class="level-item has-text-grey">
+                    
+                    
+                    5 分钟 读完 (大约 709 个字)
+                </span>
+                
+                
+            </div>
         </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                以太坊C++源码解析（二）大数据类型
+            
+        </h1>
+        <div class="content">
+            <p>我们在C++中常用的表示整形的类型有int, long, unsigned long, int64_t等等，这些类型的长度为32位，64位，一般的情况下就能满足我们的需要了，但是在以太坊里这样的精度类型就显得捉襟见肘了，比如以太坊中常用的货币单位为Wei，而以太币1Ether=10的18次方Wei，这是一个非常大的数，普通的数据类型显然不能用了，我们需要更大的数。</p>
+<p>#boost::multiprecision<br>好在C++的boost库里提供了这样的数据类型，它们就存在于boost::multiprecision命名空间中，大家可以在这个网页看到定义：<br><a href="https://www.boost.org/doc/libs/1_65_1/libs/multiprecision/doc/html/boost_multiprecision/tut/ints/cpp_int.html" target="_blank" rel="noopener">https://www.boost.org/doc/libs/1_65_1/libs/multiprecision/doc/html/boost_multiprecision/tut/ints/cpp_int.html</a><br>可以看到里面定义了uint128_t，uint256_t，uint512_t甚至uint1024_t。<br>在以太坊ethereum代码中也使用了类似的定义，不过名字不同，采用的u128表示128位无符号数，u256表示256位无符号数，以此类推，具体定义在<code>libdevcore\Common.h</code>文件中。<br>需要注意的是这种数据类型与字符串类型的转换，因为我们经常需要输出这种数值，转换位字符串会比较方便，这种类型提供了转换为<code>std::string</code>的方法，那就是<code>str()</code>函数，比如：</p>
+<pre><code>u256 value = *******;
+std::string strValue = value.str();</code></pre><p>u128,u256等类型在以太坊代码中使用非常频繁，比如区块头<code>BlockHeader.h</code>中定义了：</p>
+<pre><code>u256 m_gasLimit;
+u256 m_gasUsed;
+u256 m_difficulty;</code></pre><p><code>m_gasLimit</code>表示gas最大值，<code>m_gasUsed</code>表示所使用的gas，<code>m_difficulty</code>表示挖矿难度。</p>
+<p>#FixedHash类<br><code>FxedHash</code>类是一个模板类，定义于<code>libdevcore\FixedHash.h</code>中，我们查看这个类定义，可以看到它就只有一个数据成员：</p>
+<pre><code>std::array&lt;byte, N&gt; m_data;</code></pre><p>所以这就是一个封装的字节数组类，里面重载了==,!=,&gt;=等符号，还提供了一个成员<code>hex()</code>用于将字节数组转化为字符串数组：</p>
+<pre><code>std::string hex();</code></pre><p>为了方便使用，该文件中还定义了一些别名，比如：</p>
+<pre><code>using h520 = FixedHash&lt;65&gt;;
+using h512 = FixedHash&lt;64&gt;;
+using h256 = FixedHash&lt;32&gt;;
+using h160 = FixedHash&lt;20&gt;;
+using h128 = FixedHash&lt;16&gt;;</code></pre><p>h256表示32个字节大小的字节数组，其他以此类推。<br>FixedHash类在以太坊中也经常用到，通常来表示hash值，我们还是以<code>BlockHeader</code>为例：</p>
+<pre><code>h256 m_parentHash;
+h256 m_sha3Uncles;
+h256 m_stateRoot;
+h256 m_transactionsRoot;
+h256 m_receiptsRoot;</code></pre><p><code>m_parentHash</code>表示父块的hash值，<code>m_sha3Uncles</code>表示叔块的hash值，<code>m_stateRoot</code>表示state树根hash，<code>m_transactionsRoot</code>表示交易树根hash，<code>m_receiptsRoot</code>表示收据树根hash。</p>
+
+        </div>
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/以太坊-C-源码/">以太坊 C++ 源码</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3>
+        <div class="buttons is-centered">
+            
+                
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>支付宝</span>
+    <div class="qrcode"><img src="/images/Allipay.jpg" alt="支付宝"></div>
+</a>
+
+                
+                
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>微信</span>
+    <div class="qrcode"><img src="/images/WeChat.png" alt="微信"></div>
+</a>
+
+                
+                <!-- Visit https://www.paypal.com/donate/buttons/ to get your donate button -->
+
+<a class="button is-warning donate" onclick="document.getElementById(&#39;paypal-donate-form&#39;).submit()">
+    <span class="icon is-small">
+        <i class="fab fa-paypal"></i>
+    </span>
+    <span>Paypal</span>
+</a>
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" id="paypal-donate-form">
+    <input type="hidden" name="cmd" value="_donations">
+    <input type="hidden" name="business" value="xingkong2000cn@gmail.com">
+    <input type="hidden" name="currency_code" value="USD">
+</form>
+
+                
+        </div>
+    </div>
+</div>
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/06/18/以太坊C-源码解析（一）Worker类/">
+                <span class="level-item">以太坊C++源码解析（一）Worker类</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
     </div>
 </div>
 
@@ -636,7 +703,7 @@
             <div class="level-start has-text-centered-mobile">
                 <a class="footer-logo is-block has-mb-6" href="/">
                 
-                    <img src="/images/logo.svg" alt="星空工作室" height="28">
+                    <img src="/images/logo.svg" alt="以太坊C++源码解析（二）大数据类型" height="28">
                 
                 </a>
                 <p class="is-size-7">

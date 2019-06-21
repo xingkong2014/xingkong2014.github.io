@@ -152,6 +152,110 @@
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
             <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-06-21T07:49:11.000Z">2019-06-21</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    7 分钟 读完 (大约 1022 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                <a class="has-link-black-ter" href="/2019/06/21/以太坊C-源码解析（三）p2p-1/">以太坊C++源码解析（三）p2p(1)</a>
+            
+        </h1>
+        <div class="content">
+            <p>整个以太坊p2p代码分为两部分，一部分是基于UDP的节点发现协议，另一部分是基于TCP的传输协议，我们先来看第一部分。<br>这部分主要代码在<code>libp2p\NodeTable.h</code>文件中。<br>节点发现协议是采用了类kademlia协议(kademlia-like protocol)，关于kademlia协议可以参看wiki:<br><a href="https://en.wikipedia.org/wiki/Kademlia" target="_blank" rel="noopener">kademlia</a><br>我们先来看看NodeTable中整体的流程图：<br><img src="https://upload-images.jianshu.io/upload_images/1603745-f725b5d29bda7d9a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="NodeTable.png"><br>涉及到节点发现协议的四种类型数据包：</p>
+<ul>
+<li>FindNode</li>
+<li>Neighbours</li>
+<li>Ping</li>
+<li>Pong</li>
+</ul>
+<p>#doDiscovery<br>NodeTable类是包含在<code>Host</code>类中的，<code>Host</code>类处理p2p模块的一个接口类，后面会谈到。我们先看<code>NodeTable</code>类的构造函数，里面有这段代码：</p>
+<pre><code>m_socketPointer-&gt;connect();
+doDiscovery();</code></pre><p>其中第一行的<code>connnect()</code>函数名称有点误导，其实是socket绑定本地端口（默认端口UDP30303），并开始接收外面的数据包。<br>第二行的<code>doDiscovery()</code>函数比较重要，我们来看实现代码：</p>
+<pre><code>m_timers.schedule(c_bucketRefresh.count(), [this](boost::system::error_code const&amp; _ec)
+{
+    // ...
+    NodeID randNodeId;
+    crypto::Nonce::get().ref().copyTo(randNodeId.ref().cropped(0, h256::size));
+    crypto::Nonce::get().ref().copyTo(randNodeId.ref().cropped(h256::size, h256::size));
+    doDiscover(randNodeId);
+});</code></pre><p>无关的代码已省略。<br>可以看到这个函数其实是启动了一个定时器，每隔<code>c_bucketRefresh</code>时间执行一个lambda函数，这个lambda函数产生了一个随机节点，并调用了<code>doDiscover()</code>函数。<br><code>c_bucketRefresh</code>定义：</p>
+<pre><code>std::chrono::milliseconds const c_bucketRefresh = std::chrono::milliseconds(7200);</code></pre><p>得出结论，这个函数就是每隔7200ms刷新一次k桶，也就是产生一个随机节点，并调用<code>doDiscover()</code>。</p>
+<p>#doDiscover<br>我们再来看看<code>doDiscover()</code>函数的实现：</p>
+<pre><code>if (_round == s_maxSteps)
+{
+    LOG(m_logger) &lt;&lt; &quot;Terminating discover after &quot; &lt;&lt; _round &lt;&lt; &quot; rounds.&quot;;
+    doDiscovery();
+     return;
+}
+
+auto nearest = nearestNodeEntries(_node);
+for (unsigned i = 0; i &lt; nearest.size() &amp;&amp; tried.size() &lt; s_alpha; i++)
+{
+    auto r = nearest[i];
+    FindNode p(r-&gt;endpoint, _node);
+    p.sign(m_secret);
+    m_socketPointer-&gt;send(p);
+}
+
+m_timers.schedule(c_reqTimeout.count() * 2, [this, _node, _round, _tried](boost::system::error_code const&amp; _ec)
+{
+    doDiscover(_node, _round + 1, _tried);
+});</code></pre><p>注：这里的代码已经经过简化，省略了部分不影响理解流程的代码。<br>这部分代码可以分成三段，第一段和第三段代码都是用来做循环用的，并产生一个定时器，保证每隔<code>c_reqTimeout.count() * 2</code>时间间隔会调用一次<code>doDiscover()</code>，并且保证调用次数不超过<code>s_maxSteps</code>。
+这两个常量定义如下：</p>
+<pre><code>std::chrono::milliseconds const c_reqTimeout = std::chrono::milliseconds(300);
+static unsigned const s_maxSteps = boost::static_log2&lt;s_bits&gt;::value; // 值为8</code></pre><p>第二段代码比较重要，这里涉及到了一个重要的函数nearestNodeEntries()，根据字面意思是取最近的节点列表，并向这些节点发送FindNode消息。</p>
+<p>#nearestNodeEntries<br><code>nearestNodeEntries()</code>函数代码：</p>
+<pre><code>vector&lt;shared_ptr&lt;NodeEntry&gt;&gt; NodeTable::nearestNodeEntries(NodeID _target)
+{
+   // ..
+
+    map&lt;unsigned, list&lt;shared_ptr&lt;NodeEntry&gt;&gt;&gt; found;
+
+    // ...
+
+    vector&lt;shared_ptr&lt;NodeEntry&gt;&gt; ret;
+    for (auto&amp; nodes: found)
+        for (auto const&amp; n: nodes.second)
+            if (ret.size() &lt; s_bucketSize &amp;&amp; !!n-&gt;endpoint &amp;&amp; n-&gt;endpoint.isAllowed())
+                ret.push_back(n);
+    return ret;
+}</code></pre><p>同样，为了避免贴大段代码影响读者的信息，我这里做了简化，只贴出重要代码。<br>其实这段代码就是从K桶里把节点取出来，然后按距离从小到大排序，返回序列的前<code>s_bucketSize</code>也就是16个节点。这里巧妙的使用了<code>std::map</code>，并将距离作为key，我们都知道std::map是采用红黑树实现，节点默认会按key从小到大排列，因此把节点放到这个map里就自动排序了，免去了手动排序的过程。<br>这里需要注意的是距离是逻辑上的距离，并无实际意义，只是一种节点的筛选方式，我们可以看下距离的计算方式：</p>
+<pre><code>static int distance(NodeID const&amp; _a, NodeID const&amp; _b) { u256 d = sha3(_a) ^ sha3(_b); unsigned ret; for (ret = 0; d &gt;&gt;= 1; ++ret) {}; return ret; }</code></pre><p>可以看到这个距离只是两个节点hash做异或，然后计算二进制最高位为1的位的位数。</p>
+
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+    <div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
                 <time class="level-item has-text-grey" datetime="2019-06-21T05:36:35.000Z">2019-06-21</time>
                 
                 <div class="level-item">
@@ -325,7 +429,7 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
                         文章
                     </p>
                     <p class="title has-text-weight-normal">
-                        3
+                        4
                     </p>
                 </div>
             </div>
@@ -448,7 +552,7 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
                 <span class="level-item">以太坊C++源码解析</span>
             </span>
             <span class="level-end">
-                <span class="level-item tag">2</span>
+                <span class="level-item tag">3</span>
             </span>
         </a></li>
             </ul>
@@ -479,6 +583,25 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
         
         <article class="media">
             
+            <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（三）p2p(1)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-21T07:49:11.000Z">2019-06-21</time></div>
+                    <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="has-link-black-ter is-size-6">以太坊C++源码解析（三）p2p(1)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
             <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="media-left">
                 <p class="image is-64x64">
                     <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（二）大数据类型">
@@ -552,7 +675,7 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
                     <span class="level-item">六月 2019</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">3</span>
+                    <span class="level-item tag">4</span>
                 </span>
             </a>
         </li>
@@ -573,7 +696,7 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
                 <div class="control">
                     <a class="tags has-addons" href="/tags/以太坊-C-源码/">
                         <span class="tag">以太坊 C++ 源码</span>
-                        <span class="tag is-grey">1</span>
+                        <span class="tag is-grey">2</span>
                     </a>
                 </div>
                 
@@ -602,6 +725,25 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
         
         <article class="media">
             
+            <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（三）p2p(1)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-21T07:49:11.000Z">2019-06-21</time></div>
+                    <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="has-link-black-ter is-size-6">以太坊C++源码解析（三）p2p(1)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
             <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="media-left">
                 <p class="image is-64x64">
                     <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（二）大数据类型">
@@ -675,7 +817,7 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
                     <span class="level-item">六月 2019</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">3</span>
+                    <span class="level-item tag">4</span>
                 </span>
             </a>
         </li>
@@ -696,7 +838,7 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
                 <div class="control">
                     <a class="tags has-addons" href="/tags/以太坊-C-源码/">
                         <span class="tag">以太坊 C++ 源码</span>
-                        <span class="tag is-grey">1</span>
+                        <span class="tag is-grey">2</span>
                     </a>
                 </div>
                 

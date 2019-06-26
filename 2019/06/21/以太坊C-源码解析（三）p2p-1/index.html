@@ -16,7 +16,7 @@
 <meta property="og:description" content="整个以太坊p2p代码分为两部分，一部分是基于UDP的节点发现协议，另一部分是基于TCP的传输协议，我们先来看第一部分。这部分主要代码在libp2p\NodeTable.h文件中。节点发现协议是采用了类kademlia协议(kademlia-like protocol)，关于kademlia协议可以参看wiki:kademlia我们先来看看NodeTable中整体的流程图：涉及到节点发现协议的四种类">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/og_image.png">
-<meta property="og:updated_time" content="2019-06-21T07:50:03.857Z">
+<meta property="og:updated_time" content="2019-06-26T07:39:20.095Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="以太坊C++源码解析（三）p2p(1)">
 <meta name="twitter:description" content="整个以太坊p2p代码分为两部分，一部分是基于UDP的节点发现协议，另一部分是基于TCP的传输协议，我们先来看第一部分。这部分主要代码在libp2p\NodeTable.h文件中。节点发现协议是采用了类kademlia协议(kademlia-like protocol)，关于kademlia协议可以参看wiki:kademlia我们先来看看NodeTable中整体的流程图：涉及到节点发现协议的四种类">
@@ -155,7 +155,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    7 分钟 读完 (大约 1022 个字)
+                    7 分钟 读完 (大约 1011 个字)
                 </span>
                 
                 
@@ -168,7 +168,7 @@
             
         </h1>
         <div class="content">
-            <p>整个以太坊p2p代码分为两部分，一部分是基于UDP的节点发现协议，另一部分是基于TCP的传输协议，我们先来看第一部分。<br>这部分主要代码在<code>libp2p\NodeTable.h</code>文件中。<br>节点发现协议是采用了类kademlia协议(kademlia-like protocol)，关于kademlia协议可以参看wiki:<br><a href="https://en.wikipedia.org/wiki/Kademlia" target="_blank" rel="noopener">kademlia</a><br>我们先来看看NodeTable中整体的流程图：<br><img src="https://upload-images.jianshu.io/upload_images/1603745-f725b5d29bda7d9a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="NodeTable.png"><br>涉及到节点发现协议的四种类型数据包：</p>
+            <p>整个以太坊p2p代码分为两部分，一部分是基于UDP的节点发现协议，另一部分是基于TCP的传输协议，我们先来看第一部分。<br>这部分主要代码在<code>libp2p\NodeTable.h</code>文件中。<br>节点发现协议是采用了类kademlia协议(kademlia-like protocol)，关于kademlia协议可以参看wiki:<br><a href="https://en.wikipedia.org/wiki/Kademlia" target="_blank" rel="noopener">kademlia</a><br>我们先来看看NodeTable中整体的流程图：<br><img src="https://i.loli.net/2019/06/26/5d1320f1a055d28830.png" alt="NodeTable.png"><br>涉及到节点发现协议的四种类型数据包：</p>
 <ul>
 <li>FindNode</li>
 <li>Neighbours</li>

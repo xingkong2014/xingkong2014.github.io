@@ -7,19 +7,19 @@
 
 
 
-    <meta name="description" content="在ethereum项目中Worker类是许多类的基类，子类们继承Worker类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说Worker类是一份公用代码类，那么是什么代码这么重要呢？在Worker类中我们直接来看其成员，可以看到有两个重要的成员变量： std::unique_ptr&amp;lt;std::thread&amp;gt; m_work; mutable std::condi">
+    <meta name="description" content="在ethereum项目中Worker类是许多类的基类，子类们继承Worker类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说Worker类是一份公用代码类，那么是什么代码这么重要呢？">
 <meta property="og:type" content="article">
 <meta property="og:title" content="以太坊C++源码解析（一）Worker类">
 <meta property="og:url" content="http://yoursite.com/2019/06/18/以太坊C-源码解析（一）Worker类/index.html">
 <meta property="og:site_name" content="星空工作室">
-<meta property="og:description" content="在ethereum项目中Worker类是许多类的基类，子类们继承Worker类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说Worker类是一份公用代码类，那么是什么代码这么重要呢？在Worker类中我们直接来看其成员，可以看到有两个重要的成员变量： std::unique_ptr&amp;lt;std::thread&amp;gt; m_work; mutable std::condi">
+<meta property="og:description" content="在ethereum项目中Worker类是许多类的基类，子类们继承Worker类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说Worker类是一份公用代码类，那么是什么代码这么重要呢？">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://yoursite.com/images/og_image.png">
-<meta property="og:updated_time" content="2019-06-18T06:09:26.695Z">
+<meta property="og:image" content="http://yoursite.com/images/flower.jpg">
+<meta property="og:updated_time" content="2019-06-27T01:57:49.349Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="以太坊C++源码解析（一）Worker类">
-<meta name="twitter:description" content="在ethereum项目中Worker类是许多类的基类，子类们继承Worker类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说Worker类是一份公用代码类，那么是什么代码这么重要呢？在Worker类中我们直接来看其成员，可以看到有两个重要的成员变量： std::unique_ptr&amp;lt;std::thread&amp;gt; m_work; mutable std::condi">
-<meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
+<meta name="twitter:description" content="在ethereum项目中Worker类是许多类的基类，子类们继承Worker类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说Worker类是一份公用代码类，那么是什么代码这么重要呢？">
+<meta name="twitter:image" content="http://yoursite.com/images/flower.jpg">
 
 
 
@@ -140,6 +140,12 @@
             <div class="columns">
                 <div class="column is-8-tablet is-8-desktop is-6-widescreen has-order-2 column-main"><div class="card">
     
+    <div class="card-image">
+        <span class="image is-7by1">
+            <img class="thumbnail" src="/images/flower.jpg" alt="以太坊C++源码解析（一）Worker类">
+        </span>
+    </div>
+    
     <div class="card-content article ">
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
@@ -154,7 +160,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    3 分钟 读完 (大约 465 个字)
+                    3 分钟 读完 (大约 466 个字)
                 </span>
                 
                 
@@ -167,7 +173,9 @@
             
         </h1>
         <div class="content">
-            <p>在ethereum项目中<code>Worker</code>类是许多类的基类，子类们继承<code>Worker</code>类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说<code>Worker</code>类是一份公用代码类，那么是什么代码这么重要呢？<br>在Worker类中我们直接来看其成员，可以看到有两个重要的成员变量：</p>
+            <p>在ethereum项目中<code>Worker</code>类是许多类的基类，子类们继承<code>Worker</code>类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说<code>Worker</code>类是一份公用代码类，那么是什么代码这么重要呢？</p>
+<a id="more"></a>
+<p>在Worker类中我们直接来看其成员，可以看到有两个重要的成员变量：</p>
 <pre><code>std::unique_ptr&lt;std::thread&gt; m_work;
 mutable std::condition_variable m_state_notifier;</code></pre><p>看到这里经验丰富的程序员们应该就能想到这个是经典的生产消费者队列的C++11实现方式，还不了解生产消费者队列的同学可以暂停一下，先搜索一下相关知识再继续。<br>然后我们再来看两个重要的成员函数：</p>
 <pre><code>void startWorking();
@@ -262,13 +270,6 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
         </div>
         
         
-        <div class="level-end">
-            <a class="level level-item has-link-grey  article-nav-next" href="/2019/06/14/hello-world/">
-                <span class="level-item">Hello World</span>
-                <i class="level-item fas fa-chevron-right"></i>
-            </a>
-        </div>
-        
     </div>
 </div>
 
@@ -316,7 +317,7 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
                         文章
                     </p>
                     <p class="title has-text-weight-normal">
-                        4
+                        3
                     </p>
                 </div>
             </div>
@@ -472,7 +473,7 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
             
             <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（三）p2p(1)">
+                    <img class="thumbnail" src="/images/desert.jpg" alt="以太坊C++源码解析（三）p2p(1)">
                 </p>
             </a>
             
@@ -491,7 +492,7 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
             
             <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（二）大数据类型">
+                    <img class="thumbnail" src="/images/plant.jpg" alt="以太坊C++源码解析（二）大数据类型">
                 </p>
             </a>
             
@@ -510,7 +511,7 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
             
             <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（一）Worker类">
+                    <img class="thumbnail" src="/images/flower.jpg" alt="以太坊C++源码解析（一）Worker类">
                 </p>
             </a>
             
@@ -520,25 +521,6 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
                     <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="has-link-black-ter is-size-6">以太坊C++源码解析（一）Worker类</a>
                     <p class="is-size-7 is-uppercase">
                         <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-        <article class="media">
-            
-            <a href="/2019/06/14/hello-world/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="Hello World">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-14T08:50:13.607Z">2019-06-14</time></div>
-                    <a href="/2019/06/14/hello-world/" class="has-link-black-ter is-size-6">Hello World</a>
-                    <p class="is-size-7 is-uppercase">
-                        
                     </p>
                 </div>
             </div>
@@ -562,7 +544,7 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
                     <span class="level-item">六月 2019</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">4</span>
+                    <span class="level-item tag">3</span>
                 </span>
             </a>
         </li>
@@ -614,7 +596,7 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
             
             <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（三）p2p(1)">
+                    <img class="thumbnail" src="/images/desert.jpg" alt="以太坊C++源码解析（三）p2p(1)">
                 </p>
             </a>
             
@@ -633,7 +615,7 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
             
             <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（二）大数据类型">
+                    <img class="thumbnail" src="/images/plant.jpg" alt="以太坊C++源码解析（二）大数据类型">
                 </p>
             </a>
             
@@ -652,7 +634,7 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
             
             <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（一）Worker类">
+                    <img class="thumbnail" src="/images/flower.jpg" alt="以太坊C++源码解析（一）Worker类">
                 </p>
             </a>
             
@@ -662,25 +644,6 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
                     <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="has-link-black-ter is-size-6">以太坊C++源码解析（一）Worker类</a>
                     <p class="is-size-7 is-uppercase">
                         <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-        <article class="media">
-            
-            <a href="/2019/06/14/hello-world/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="Hello World">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-14T08:50:13.607Z">2019-06-14</time></div>
-                    <a href="/2019/06/14/hello-world/" class="has-link-black-ter is-size-6">Hello World</a>
-                    <p class="is-size-7 is-uppercase">
-                        
                     </p>
                 </div>
             </div>
@@ -704,7 +667,7 @@ virtual void doneWorking() {}</code></pre><p>可以看到除了<code>workLoop()<
                     <span class="level-item">六月 2019</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">4</span>
+                    <span class="level-item tag">3</span>
                 </span>
             </a>
         </li>

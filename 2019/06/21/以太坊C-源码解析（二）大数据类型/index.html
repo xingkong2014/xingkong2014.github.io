@@ -7,20 +7,20 @@
 
 
 
-    <meta name="description" content="我们在C++中常用的表示整形的类型有int, long, unsigned long, int64_t等等，这些类型的长度为32位，64位，一般的情况下就能满足我们的需要了，但是在以太坊里这样的精度类型就显得捉襟见肘了，比如以太坊中常用的货币单位为Wei，而以太币1Ether=10的18次方Wei，这是一个非常大的数，普通的数据类型显然不能用了，我们需要更大的数。 #boost::multipre">
+    <meta name="description" content="我们在C++中常用的表示整形的类型有int, long, unsigned long, int64_t等等，这些类型的长度为32位，64位，一般的情况下就能满足我们的需要了，但是在以太坊里这样的精度类型就显得捉襟见肘了，比如以太坊中常用的货币单位为Wei，而以太币1Ether=10的18次方Wei，这是一个非常大的数，普通的数据类型显然不能用了，我们需要更大的数。">
 <meta name="keywords" content="以太坊 C++ 源码">
 <meta property="og:type" content="article">
 <meta property="og:title" content="以太坊C++源码解析（二）大数据类型">
 <meta property="og:url" content="http://yoursite.com/2019/06/21/以太坊C-源码解析（二）大数据类型/index.html">
 <meta property="og:site_name" content="星空工作室">
-<meta property="og:description" content="我们在C++中常用的表示整形的类型有int, long, unsigned long, int64_t等等，这些类型的长度为32位，64位，一般的情况下就能满足我们的需要了，但是在以太坊里这样的精度类型就显得捉襟见肘了，比如以太坊中常用的货币单位为Wei，而以太币1Ether=10的18次方Wei，这是一个非常大的数，普通的数据类型显然不能用了，我们需要更大的数。 #boost::multipre">
+<meta property="og:description" content="我们在C++中常用的表示整形的类型有int, long, unsigned long, int64_t等等，这些类型的长度为32位，64位，一般的情况下就能满足我们的需要了，但是在以太坊里这样的精度类型就显得捉襟见肘了，比如以太坊中常用的货币单位为Wei，而以太币1Ether=10的18次方Wei，这是一个非常大的数，普通的数据类型显然不能用了，我们需要更大的数。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://yoursite.com/images/og_image.png">
-<meta property="og:updated_time" content="2019-06-21T05:38:04.120Z">
+<meta property="og:image" content="http://yoursite.com/images/plant.jpg">
+<meta property="og:updated_time" content="2019-06-27T01:57:13.861Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="以太坊C++源码解析（二）大数据类型">
-<meta name="twitter:description" content="我们在C++中常用的表示整形的类型有int, long, unsigned long, int64_t等等，这些类型的长度为32位，64位，一般的情况下就能满足我们的需要了，但是在以太坊里这样的精度类型就显得捉襟见肘了，比如以太坊中常用的货币单位为Wei，而以太币1Ether=10的18次方Wei，这是一个非常大的数，普通的数据类型显然不能用了，我们需要更大的数。 #boost::multipre">
-<meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
+<meta name="twitter:description" content="我们在C++中常用的表示整形的类型有int, long, unsigned long, int64_t等等，这些类型的长度为32位，64位，一般的情况下就能满足我们的需要了，但是在以太坊里这样的精度类型就显得捉襟见肘了，比如以太坊中常用的货币单位为Wei，而以太币1Ether=10的18次方Wei，这是一个非常大的数，普通的数据类型显然不能用了，我们需要更大的数。">
+<meta name="twitter:image" content="http://yoursite.com/images/plant.jpg">
 
 
 
@@ -141,6 +141,12 @@
             <div class="columns">
                 <div class="column is-8-tablet is-8-desktop is-6-widescreen has-order-2 column-main"><div class="card">
     
+    <div class="card-image">
+        <span class="image is-7by1">
+            <img class="thumbnail" src="/images/plant.jpg" alt="以太坊C++源码解析（二）大数据类型">
+        </span>
+    </div>
+    
     <div class="card-content article ">
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
@@ -155,7 +161,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    5 分钟 读完 (大约 709 个字)
+                    5 分钟 读完 (大约 710 个字)
                 </span>
                 
                 
@@ -169,6 +175,7 @@
         </h1>
         <div class="content">
             <p>我们在C++中常用的表示整形的类型有int, long, unsigned long, int64_t等等，这些类型的长度为32位，64位，一般的情况下就能满足我们的需要了，但是在以太坊里这样的精度类型就显得捉襟见肘了，比如以太坊中常用的货币单位为Wei，而以太币1Ether=10的18次方Wei，这是一个非常大的数，普通的数据类型显然不能用了，我们需要更大的数。</p>
+<a id="more"></a>
 <p>#boost::multiprecision<br>好在C++的boost库里提供了这样的数据类型，它们就存在于boost::multiprecision命名空间中，大家可以在这个网页看到定义：<br><a href="https://www.boost.org/doc/libs/1_65_1/libs/multiprecision/doc/html/boost_multiprecision/tut/ints/cpp_int.html" target="_blank" rel="noopener">https://www.boost.org/doc/libs/1_65_1/libs/multiprecision/doc/html/boost_multiprecision/tut/ints/cpp_int.html</a><br>可以看到里面定义了uint128_t，uint256_t，uint512_t甚至uint1024_t。<br>在以太坊ethereum代码中也使用了类似的定义，不过名字不同，采用的u128表示128位无符号数，u256表示256位无符号数，以此类推，具体定义在<code>libdevcore\Common.h</code>文件中。<br>需要注意的是这种数据类型与字符串类型的转换，因为我们经常需要输出这种数值，转换位字符串会比较方便，这种类型提供了转换为<code>std::string</code>的方法，那就是<code>str()</code>函数，比如：</p>
 <pre><code>u256 value = *******;
 std::string strValue = value.str();</code></pre><p>u128,u256等类型在以太坊代码中使用非常频繁，比如区块头<code>BlockHeader.h</code>中定义了：</p>
@@ -318,7 +325,7 @@ h256 m_receiptsRoot;</code></pre><p><code>m_parentHash</code>表示父块的hash
                         文章
                     </p>
                     <p class="title has-text-weight-normal">
-                        4
+                        3
                     </p>
                 </div>
             </div>
@@ -474,7 +481,7 @@ h256 m_receiptsRoot;</code></pre><p><code>m_parentHash</code>表示父块的hash
             
             <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（三）p2p(1)">
+                    <img class="thumbnail" src="/images/desert.jpg" alt="以太坊C++源码解析（三）p2p(1)">
                 </p>
             </a>
             
@@ -493,7 +500,7 @@ h256 m_receiptsRoot;</code></pre><p><code>m_parentHash</code>表示父块的hash
             
             <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（二）大数据类型">
+                    <img class="thumbnail" src="/images/plant.jpg" alt="以太坊C++源码解析（二）大数据类型">
                 </p>
             </a>
             
@@ -512,7 +519,7 @@ h256 m_receiptsRoot;</code></pre><p><code>m_parentHash</code>表示父块的hash
             
             <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（一）Worker类">
+                    <img class="thumbnail" src="/images/flower.jpg" alt="以太坊C++源码解析（一）Worker类">
                 </p>
             </a>
             
@@ -522,25 +529,6 @@ h256 m_receiptsRoot;</code></pre><p><code>m_parentHash</code>表示父块的hash
                     <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="has-link-black-ter is-size-6">以太坊C++源码解析（一）Worker类</a>
                     <p class="is-size-7 is-uppercase">
                         <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-        <article class="media">
-            
-            <a href="/2019/06/14/hello-world/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="Hello World">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-14T08:50:13.607Z">2019-06-14</time></div>
-                    <a href="/2019/06/14/hello-world/" class="has-link-black-ter is-size-6">Hello World</a>
-                    <p class="is-size-7 is-uppercase">
-                        
                     </p>
                 </div>
             </div>
@@ -564,7 +552,7 @@ h256 m_receiptsRoot;</code></pre><p><code>m_parentHash</code>表示父块的hash
                     <span class="level-item">六月 2019</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">4</span>
+                    <span class="level-item tag">3</span>
                 </span>
             </a>
         </li>
@@ -616,7 +604,7 @@ h256 m_receiptsRoot;</code></pre><p><code>m_parentHash</code>表示父块的hash
             
             <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（三）p2p(1)">
+                    <img class="thumbnail" src="/images/desert.jpg" alt="以太坊C++源码解析（三）p2p(1)">
                 </p>
             </a>
             
@@ -635,7 +623,7 @@ h256 m_receiptsRoot;</code></pre><p><code>m_parentHash</code>表示父块的hash
             
             <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（二）大数据类型">
+                    <img class="thumbnail" src="/images/plant.jpg" alt="以太坊C++源码解析（二）大数据类型">
                 </p>
             </a>
             
@@ -654,7 +642,7 @@ h256 m_receiptsRoot;</code></pre><p><code>m_parentHash</code>表示父块的hash
             
             <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（一）Worker类">
+                    <img class="thumbnail" src="/images/flower.jpg" alt="以太坊C++源码解析（一）Worker类">
                 </p>
             </a>
             
@@ -664,25 +652,6 @@ h256 m_receiptsRoot;</code></pre><p><code>m_parentHash</code>表示父块的hash
                     <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="has-link-black-ter is-size-6">以太坊C++源码解析（一）Worker类</a>
                     <p class="is-size-7 is-uppercase">
                         <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-        <article class="media">
-            
-            <a href="/2019/06/14/hello-world/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="Hello World">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-14T08:50:13.607Z">2019-06-14</time></div>
-                    <a href="/2019/06/14/hello-world/" class="has-link-black-ter is-size-6">Hello World</a>
-                    <p class="is-size-7 is-uppercase">
-                        
                     </p>
                 </div>
             </div>
@@ -706,7 +675,7 @@ h256 m_receiptsRoot;</code></pre><p><code>m_parentHash</code>表示父块的hash
                     <span class="level-item">六月 2019</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">4</span>
+                    <span class="level-item tag">3</span>
                 </span>
             </a>
         </li>

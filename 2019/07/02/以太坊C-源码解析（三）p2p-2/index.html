@@ -2,19 +2,24 @@
 <html lang="zh">
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-<title>标签: 以太坊 C++ 源码 - 星空工作室</title>
+<title>以太坊C++源码解析（三）p2p(2) - 星空工作室</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-    <meta property="og:type" content="website">
-<meta property="og:title" content="星空工作室">
-<meta property="og:url" content="http://yoursite.com/tags/以太坊-C-源码/index.html">
+    <meta name="description" content="#K桶的实现这里借用一下别人的图：可以看到这个就是一个二维数组，可以简单定义为：int bucket[256][16]其中第一维是从0-255表示距离，第二维记录16个节点。">
+<meta name="keywords" content="以太坊 C++ 源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="以太坊C++源码解析（三）p2p(2)">
+<meta property="og:url" content="http://yoursite.com/2019/07/02/以太坊C-源码解析（三）p2p-2/index.html">
 <meta property="og:site_name" content="星空工作室">
+<meta property="og:description" content="#K桶的实现这里借用一下别人的图：可以看到这个就是一个二维数组，可以简单定义为：int bucket[256][16]其中第一维是从0-255表示距离，第二维记录16个节点。">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/og_image.png">
+<meta property="og:updated_time" content="2019-07-02T04:02:25.912Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="星空工作室">
+<meta name="twitter:title" content="以太坊C++源码解析（三）p2p(2)">
+<meta name="twitter:description" content="#K桶的实现这里借用一下别人的图：可以看到这个就是一个二维数组，可以简单定义为：int bucket[256][16]其中第一维是从0-255表示距离，第二维记录16个节点。">
 <meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
 
 
@@ -89,7 +94,7 @@
         <div class="navbar-brand is-flex-center">
             <a class="navbar-item navbar-logo" href="/">
             
-                <img src="/images/logo.svg" alt="星空工作室" height="28">
+                <img src="/images/logo.svg" alt="以太坊C++源码解析（三）p2p(2)" height="28">
             
             </a>
         </div>
@@ -133,69 +138,6 @@
         <div class="container">
             <div class="columns">
                 <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main"><div class="card">
-    <div class="card-content">
-        <nav class="breadcrumb" aria-label="breadcrumbs">
-        <ul>
-            <li><a href="/tags">标签</a></li>
-            <li class="is-active"><a href="#" aria-current="page">以太坊 C++ 源码</a></li>
-        </ul>
-        </nav>
-    </div>
-</div>
-
-    <div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-07-02T04:03:50.000Z">2019-07-02</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    11 分钟 读完 (大约 1689 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2019/07/02/以太坊C-源码解析（三）p2p-3/">以太坊C++源码解析（三）p2p(3)</a>
-            
-        </h1>
-        <div class="content">
-            <p>我们再来深入了解一下Host类里节点和本节点是怎么交互的，在上一节可以看到节点到了Host类后，会调用<code>Host::connect</code>来连接对方，我们可以看下<code>connect()</code>函数实现代码：</p>
-        </div>
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/07/02/以太坊C-源码解析（三）p2p-3/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-    <div class="card">
     
     <div class="card-content article ">
         
@@ -220,21 +162,61 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                <a class="has-link-black-ter" href="/2019/07/02/以太坊C-源码解析（三）p2p-2/">以太坊C++源码解析（三）p2p(2)</a>
+                以太坊C++源码解析（三）p2p(2)
             
         </h1>
         <div class="content">
             <p>#K桶的实现<br>这里借用一下别人的图：<br><img src="https://upload-images.jianshu.io/upload_images/1603745-6588648ac3b01d1a.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="7785cda87f6f415c9aa5336d6bd88985.jpg"><br>可以看到这个就是一个二维数组，可以简单定义为：<code>int bucket[256][16]</code>其中第一维是从0-255表示距离，第二维记录16个节点。</p>
+<a id="more"></a>
+<p>在代码中实际的K桶定义是：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">array</span>&lt;NodeBucket, s_bins&gt; m_state;</span><br></pre></td></tr></table></figure>
+
+<p>这个定义等同于</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">NodeBucket[s_bins] m_state;</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>s_bins</code>值为255，根据上面的图，s_bins应该是256，为什么是255呢？这里其实是把距离为0的那些节点排除掉了，所以为255。再来看<code>NodeBucke</code>t的定义：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">NodeBucket</span></span></span><br><span class="line"><span class="hljs-class">&#123;</span></span><br><span class="line">    <span class="hljs-keyword">unsigned</span> distance;</span><br><span class="line">    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">list</span>&lt;<span class="hljs-built_in">std</span>::weak_ptr&lt;NodeEntry&gt;&gt; nodes;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这里的<code>nodes</code>就是实际存放在K桶里的节点了，在这里还看不出来<code>nodes</code>数组的大小，不过在实际添加节点的时候会有大小判断：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">if</span> (nodes.size() &lt; s_bucketSize)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-comment">// ...</span></span><br><span class="line">    nodes.push_back(newNode);</span><br><span class="line">    <span class="hljs-comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>s_bucketSize</code>的值正是16.</p>
+<p>#noteActiveNode<br><code>noteActiveNode</code>这个函数在每收到一个UDP包都会被调用，其主要实现代码为：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">NodeBucket&amp; s = bucket_UNSAFE(newNode.get());</span><br><span class="line"><span class="hljs-keyword">auto</span>&amp; nodes = s.nodes;</span><br><span class="line"></span><br><span class="line"><span class="hljs-comment">// check if the node is already in the bucket</span></span><br><span class="line"><span class="hljs-keyword">auto</span> it = <span class="hljs-built_in">std</span>::find(nodes.begin(), nodes.end(), newNode);</span><br><span class="line"><span class="hljs-keyword">if</span> (it != nodes.end())</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-comment">// if it was in the bucket, move it to the last position</span></span><br><span class="line">    nodes.splice(nodes.end(), nodes, it);</span><br><span class="line">&#125;</span><br><span class="line"><span class="hljs-keyword">else</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (nodes.size() &lt; s_bucketSize)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-comment">// if it was not there, just add it as a most recently seen node</span></span><br><span class="line">        <span class="hljs-comment">// (i.e. to the end of the list)</span></span><br><span class="line">        nodes.push_back(newNode);</span><br><span class="line">        <span class="hljs-keyword">if</span> (m_nodeEventHandler)</span><br><span class="line">            m_nodeEventHandler-&gt;appendEvent(newNode-&gt;id, NodeEntryAdded);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-comment">// if bucket is full, start eviction process for the least recently seen node</span></span><br><span class="line">        nodeToEvict = nodes.front().lock();</span><br><span class="line">        <span class="hljs-comment">// It could have been replaced in addNode(), then weak_ptr is expired.</span></span><br><span class="line">        <span class="hljs-comment">// If so, just add a new one instead of expired</span></span><br><span class="line">        <span class="hljs-keyword">if</span> (!nodeToEvict)</span><br><span class="line">        &#123;</span><br><span class="line">            nodes.pop_front();</span><br><span class="line">            nodes.push_back(newNode);</span><br><span class="line">            <span class="hljs-keyword">if</span> (m_nodeEventHandler)</span><br><span class="line">                m_nodeEventHandler-&gt;appendEvent(newNode-&gt;id, NodeEntryAdded);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这部分是目前我贴出来的最长的代码了，代码虽然长一点，但是可读性非常好，而且有详细的注释。这部分涉及到K桶的操作，收到一个节点后判断是否已经在K桶中了，如果在的话就移动它到<code>nodes</code>的末尾，如果不存在就放到K桶中，这里需要重点注意两行代码：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">if</span> (m_nodeEventHandler)</span><br><span class="line">    m_nodeEventHandler-&gt;appendEvent(newNode-&gt;id, NodeEntryAdded);</span><br></pre></td></tr></table></figure>
+
+<p>这段代码在节点被放到K桶中时会被调用，这两句非常重要，作用后面再说。</p>
+<p>#预设节点<br>这里还有个问题，不知道读者朋友有没有注意到，那就是虽然有节点发现协议来源源不断地发现新节点，但是初始化的时候是只有本节点一个节点的，我从哪里去获得其他节点的IP呢？<br>还记得上一节的<code>nearestNodeEntries()</code>这个函数吗？这个函数是从K桶中取得节点，按距离从小到大排列，然后向这些节点发送<code>FindNode</code>消息的，但是初始情况下K桶是空的，我们要向哪发消息呢？<br>巧妇也难为无米之炊啊，因此这里必然隐藏了一个特殊的绿色通道，用来直接放入初始节点的。<br>这个绿色通道就是<code>NodeTable::addNode()</code>函数，这个函数在多处出现，大部分情况下为正常调用，但是注意到这个函数在<code>Host::addNodeToNodeTable()</code>函数里调用了，我们再来顺藤摸瓜，看看<code>Host::addNodeToNodeTable()</code>在哪里调用，也有多个地方，但是值得注意的是在<code>Host::requirePeer()</code>里的调用。因为这个函数在<code>aleth\main.cpp</code>里被调用到了，我把调用的地方贴出来：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> <span class="hljs-keyword">const</span>&amp; i: Host::pocHosts())</span><br><span class="line">    web3.requirePeer(i.first, i.second);</span><br></pre></td></tr></table></figure>
+
+<p>这段代码看起来就是在添加一些节点，<code>web3</code>为<code>dev::WebThreeDirect</code>类，而 <code>web3.requirePeer()</code>会调用<code>Host::requirePeer()</code>，至此这些预设节点被添加到<code>NodeTable</code>中，相当于给机器一个初始的力，于是机器开始正常运转起来。<br>有兴趣的读者还可以去<code>Host::pocHosts()</code>看看是哪些初始节点。</p>
+<p>#添加节点到传输网络<br>以太坊的P2P模块其实分为两部分，第一部分就是目前说到的UDP节点发现协议，另外一部分是TCP的节点间数据传输协议，这两部分之间是通过什么交互的呢？也就是节点是怎么从第一部分被发现到第二部分和本节点间传输数据呢？其实前面这两句看起来不起眼的代码就是连接两部分之间的桥梁。<br><code>NodeTable</code>类内置一个事件处理器：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">unique_ptr</span>&lt;NodeTableEventHandler&gt; m_nodeEventHandler;</span><br></pre></td></tr></table></figure>
+
+<p><code>NodeTableEventHandler</code>类通过<code>appendEvent()</code>来添加事件，并通过<code>processEvents()</code>来处理每个事件，那么事件是怎么处理的呢？<br>但是<code>processEvent()</code>事件处理函数是一个纯虚函数：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">processEvent</span><span class="hljs-params">(NodeID <span class="hljs-keyword">const</span>&amp; _n, NodeTableEventType <span class="hljs-keyword">const</span>&amp; _e)</span> </span>= <span class="hljs-number">0</span>;</span><br></pre></td></tr></table></figure>
+
+<p>因此要到它的子类去找，可以看到<code>libp2p\Host.h</code>文件中定义了子类：<code>HostNodeTableHandler</code>，也实现了<code>processEvent()</code>函数：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> HostNodeTableHandler::processEvent(NodeID <span class="hljs-keyword">const</span>&amp; _n, NodeTableEventType <span class="hljs-keyword">const</span>&amp; _e) </span><br><span class="line">&#123;</span><br><span class="line">    m_host.onNodeTableEvent(_n, _e);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里又调用了<code>Host::onNodeTableEvent()</code>函数。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> Host::onNodeTableEvent(NodeID <span class="hljs-keyword">const</span>&amp; _n, NodeTableEventType <span class="hljs-keyword">const</span>&amp; _e)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (_e == NodeEntryAdded)</span><br><span class="line">    &#123;</span><br><span class="line">        LOG(m_logger) &lt;&lt; <span class="hljs-string">"p2p.host.nodeTable.events.nodeEntryAdded "</span> &lt;&lt; _n;</span><br><span class="line">        <span class="hljs-keyword">if</span> (Node n = nodeFromNodeTable(_n))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="hljs-built_in">shared_ptr</span>&lt;Peer&gt; p;</span><br><span class="line">            <span class="hljs-comment">// ...</span></span><br><span class="line">            <span class="hljs-keyword">if</span> (peerSlotsAvailable(Egress))</span><br><span class="line">                connect(p);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (_e == NodeEntryDropped)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-comment">// ...</span></span><br><span class="line">        <span class="hljs-keyword">if</span> (m_peers.count(_n) &amp;&amp; m_peers[_n]-&gt;peerType == PeerType::Optional)</span><br><span class="line">            m_peers.erase(_n);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里同样精简了代码，值得注意的是<code>connect(p)</code>;这一句，从字面上看是连接节点，实际代码是通过boost::asio库实现了底层网络传输。<br>现在事情已经比较清楚了，那么<code>NodeTableEventHandler::processEvent()</code>函数是由谁来调用的呢？其实是<code>Host</code>里的一个定时器调用的，有兴趣的读者可以去看<code>Host::run()</code>函数，其实就是<code>Host</code>类与<code>NodeTable</code>类之间的相互调用。</p>
+
         </div>
         
-        
-        <div class="level is-mobile">
+        <div class="level is-size-7 is-uppercase">
             <div class="level-start">
                 <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/07/02/以太坊C-源码解析（三）p2p-2/#more">阅读更多</a>
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/以太坊-C-源码/">以太坊 C++ 源码</a>
                 </div>
             </div>
         </div>
+        
         
         
     </div>
@@ -242,165 +224,72 @@
 
 
 
-
-
-
-
-
-    <div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-06-21T07:49:11.000Z">2019-06-21</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    7 分钟 读完 (大约 1019 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+<div class="card">
+    <div class="card-content">
+        <h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3>
+        <div class="buttons is-centered">
             
-                <a class="has-link-black-ter" href="/2019/06/21/以太坊C-源码解析（三）p2p-1/">以太坊C++源码解析（三）p2p(1)</a>
-            
-        </h1>
-        <div class="content">
-            <p>整个以太坊p2p代码分为两部分，一部分是基于UDP的节点发现协议，另一部分是基于TCP的传输协议，我们先来看第一部分。<br>这部分主要代码在<code>libp2p\NodeTable.h</code>文件中。</p>
+                
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>支付宝</span>
+    <div class="qrcode"><img src="/images/Allipay.jpg" alt="支付宝"></div>
+</a>
+
+                
+                
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>微信</span>
+    <div class="qrcode"><img src="/images/WeChat.png" alt="微信"></div>
+</a>
+
+                
+                <!-- Visit https://www.paypal.com/donate/buttons/ to get your donate button -->
+
+<a class="button is-warning donate" onclick="document.getElementById(&#39;paypal-donate-form&#39;).submit()">
+    <span class="icon is-small">
+        <i class="fab fa-paypal"></i>
+    </span>
+    <span>Paypal</span>
+</a>
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" id="paypal-donate-form">
+    <input type="hidden" name="cmd" value="_donations">
+    <input type="hidden" name="business" value="xingkong2000cn@gmail.com">
+    <input type="hidden" name="currency_code" value="USD">
+</form>
+
+                
         </div>
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/06/21/以太坊C-源码解析（三）p2p-1/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
     </div>
 </div>
 
 
 
-
-
-
-
-
-    <div class="card">
-    
-    <div class="card-content article ">
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
         
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-06-21T05:36:35.000Z">2019-06-21</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    5 分钟 读完 (大约 716 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2019/06/21/以太坊C-源码解析（二）大数据类型/">以太坊C++源码解析（二）大数据类型</a>
-            
-        </h1>
-        <div class="content">
-            <p>我们在C++中常用的表示整形的类型有int, long, unsigned long, int64_t等等，这些类型的长度为32位，64位，一般的情况下就能满足我们的需要了，但是在以太坊里这样的精度类型就显得捉襟见肘了，比如以太坊中常用的货币单位为Wei，而以太币1Ether=10的18次方Wei，这是一个非常大的数，普通的数据类型显然不能用了，我们需要更大的数。</p>
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/07/02/以太坊C-源码解析（三）p2p-3/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">以太坊C++源码解析（三）p2p(3)</span>
+            </a>
         </div>
         
         
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/06/21/以太坊C-源码解析（二）大数据类型/#more">阅读更多</a>
-                </div>
-            </div>
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/06/21/以太坊C-源码解析（三）p2p-1/">
+                <span class="level-item">以太坊C++源码解析（三）p2p(1)</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
         </div>
-        
         
     </div>
 </div>
-
-
-
-
-
-
-
-
-    <div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-06-18T03:42:19.000Z">2019-06-18</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    3 分钟 读完 (大约 471 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2019/06/18/以太坊C-源码解析（一）Worker类/">以太坊C++源码解析（一）Worker类</a>
-            
-        </h1>
-        <div class="content">
-            <p>在ethereum项目中<code>Worker</code>类是许多类的基类，子类们继承<code>Worker</code>类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说<code>Worker</code>类是一份公用代码类，那么是什么代码这么重要呢？</p>
-        </div>
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/06/18/以太坊C-源码解析（一）Worker类/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
 
 
 </div>
@@ -681,7 +570,7 @@
             <div class="level-start has-text-centered-mobile">
                 <a class="footer-logo is-block has-mb-6" href="/">
                 
-                    <img src="/images/logo.svg" alt="星空工作室" height="28">
+                    <img src="/images/logo.svg" alt="以太坊C++源码解析（三）p2p(2)" height="28">
                 
                 </a>
                 <p class="is-size-7">

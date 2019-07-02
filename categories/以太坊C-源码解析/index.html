@@ -83,7 +83,7 @@
 
 <link rel="stylesheet" href="/css/style.css">
 </head>
-<body class="is-3-column">
+<body class="is-2-column">
     <nav class="navbar navbar-main">
     <div class="container">
         <div class="navbar-brand is-flex-center">
@@ -97,15 +97,13 @@
             
             <div class="navbar-start">
                 
-                <a class="navbar-item" href="/">Home</a>
+                <a class="navbar-item" href="/">主页</a>
                 
-                <a class="navbar-item" href="/archives">Archives</a>
+                <a class="navbar-item" href="/archives">存档</a>
                 
-                <a class="navbar-item" href="/categories">Categories</a>
+                <a class="navbar-item" href="/categories">分类</a>
                 
-                <a class="navbar-item" href="/tags">Tags</a>
-                
-                <a class="navbar-item" href="/about">About</a>
+                <a class="navbar-item" href="/tags">标签</a>
                 
             </div>
             
@@ -134,7 +132,7 @@
     <section class="section">
         <div class="container">
             <div class="columns">
-                <div class="column is-8-tablet is-8-desktop is-6-widescreen has-order-2 column-main"><div class="card">
+                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main"><div class="card">
     <div class="card-content">
         <nav class="breadcrumb" aria-label="breadcrumbs">
         <ul>
@@ -148,11 +146,109 @@
 
     <div class="card">
     
-    <div class="card-image">
-        <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="image is-7by1">
-            <img class="thumbnail" src="/images/desert.jpg" alt="以太坊C++源码解析（三）p2p(1)">
-        </a>
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-07-02T04:03:50.000Z">2019-07-02</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    11 分钟 读完 (大约 1689 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                <a class="has-link-black-ter" href="/2019/07/02/以太坊C-源码解析（三）p2p-3/">以太坊C++源码解析（三）p2p(3)</a>
+            
+        </h1>
+        <div class="content">
+            <p>我们再来深入了解一下Host类里节点和本节点是怎么交互的，在上一节可以看到节点到了Host类后，会调用<code>Host::connect</code>来连接对方，我们可以看下<code>connect()</code>函数实现代码：</p>
+        </div>
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2019/07/02/以太坊C-源码解析（三）p2p-3/#more">阅读更多</a>
+                </div>
+            </div>
+        </div>
+        
+        
     </div>
+</div>
+
+
+
+
+
+
+
+
+    <div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-07-02T03:58:10.000Z">2019-07-02</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    10 分钟 读完 (大约 1492 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                <a class="has-link-black-ter" href="/2019/07/02/以太坊C-源码解析（三）p2p-2/">以太坊C++源码解析（三）p2p(2)</a>
+            
+        </h1>
+        <div class="content">
+            <p>#K桶的实现<br>这里借用一下别人的图：<br><img src="https://upload-images.jianshu.io/upload_images/1603745-6588648ac3b01d1a.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="7785cda87f6f415c9aa5336d6bd88985.jpg"><br>可以看到这个就是一个二维数组，可以简单定义为：<code>int bucket[256][16]</code>其中第一维是从0-255表示距离，第二维记录16个节点。</p>
+        </div>
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2019/07/02/以太坊C-源码解析（三）p2p-2/#more">阅读更多</a>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+    <div class="card">
     
     <div class="card-content article ">
         
@@ -168,7 +264,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    7 分钟 读完 (大约 1012 个字)
+                    7 分钟 读完 (大约 1019 个字)
                 </span>
                 
                 
@@ -206,12 +302,6 @@
 
     <div class="card">
     
-    <div class="card-image">
-        <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="image is-7by1">
-            <img class="thumbnail" src="/images/plant.jpg" alt="以太坊C++源码解析（二）大数据类型">
-        </a>
-    </div>
-    
     <div class="card-content article ">
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
@@ -226,7 +316,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    5 分钟 读完 (大约 710 个字)
+                    5 分钟 读完 (大约 716 个字)
                 </span>
                 
                 
@@ -264,12 +354,6 @@
 
     <div class="card">
     
-    <div class="card-image">
-        <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="image is-7by1">
-            <img class="thumbnail" src="/images/flower.jpg" alt="以太坊C++源码解析（一）Worker类">
-        </a>
-    </div>
-    
     <div class="card-content article ">
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
@@ -284,7 +368,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    3 分钟 读完 (大约 466 个字)
+                    3 分钟 读完 (大约 471 个字)
                 </span>
                 
                 
@@ -326,7 +410,7 @@
 
 
 
-<div class="column is-4-tablet is-4-desktop is-3-widescreen  has-order-1 column-left ">
+<div class="column is-4-tablet is-3-desktop is-3-widescreen  has-order-1 column-left ">
     
         
 <div class="card widget">
@@ -363,7 +447,7 @@
                         文章
                     </p>
                     <p class="title has-text-weight-normal">
-                        3
+                        5
                     </p>
                 </div>
             </div>
@@ -434,45 +518,6 @@
         
     
         
-
-<div class="card widget">
-    <div class="card-content">
-        <div class="menu">
-        <h3 class="menu-label">
-            链接
-        </h3>
-        <ul class="menu-list">
-        
-            <li>
-                <a class="level is-mobile" href="https://hexo.io" target="_blank">
-                    <span class="level-left">
-                        <span class="level-item">Hexo</span>
-                    </span>
-                    <span class="level-right">
-                        <span class="level-item tag">hexo.io</span>
-                    </span>
-                </a>
-            </li>
-        
-            <li>
-                <a class="level is-mobile" href="https://github.com/ppoffice" target="_blank">
-                    <span class="level-left">
-                        <span class="level-item">PPOffice</span>
-                    </span>
-                    <span class="level-right">
-                        <span class="level-item tag">github.com</span>
-                    </span>
-                </a>
-            </li>
-        
-        </ul>
-        </div>
-    </div>
-</div>
-
-
-    
-        
 <div class="card widget">
     <div class="card-content">
         <div class="menu">
@@ -486,7 +531,7 @@
                 <span class="level-item">以太坊C++源码解析</span>
             </span>
             <span class="level-end">
-                <span class="level-item tag">3</span>
+                <span class="level-item tag">5</span>
             </span>
         </a></li>
             </ul>
@@ -498,254 +543,136 @@
 <div class="card widget">
     <div class="card-content">
         <h3 class="menu-label">
-            标签云
+            最新文章
         </h3>
-        <a href="/tags/以太坊-C-源码/" style="font-size: 10px;">以太坊 C++ 源码</a>
+        
+        <article class="media">
+            
+            <a href="/2019/07/02/以太坊C-源码解析（三）p2p-3/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（三）p2p(3)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-02T04:03:50.000Z">2019-07-02</time></div>
+                    <a href="/2019/07/02/以太坊C-源码解析（三）p2p-3/" class="has-link-black-ter is-size-6">以太坊C++源码解析（三）p2p(3)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/07/02/以太坊C-源码解析（三）p2p-2/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（三）p2p(2)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-02T03:58:10.000Z">2019-07-02</time></div>
+                    <a href="/2019/07/02/以太坊C-源码解析（三）p2p-2/" class="has-link-black-ter is-size-6">以太坊C++源码解析（三）p2p(2)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（三）p2p(1)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-21T07:49:11.000Z">2019-06-21</time></div>
+                    <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="has-link-black-ter is-size-6">以太坊C++源码解析（三）p2p(1)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（二）大数据类型">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-21T05:36:35.000Z">2019-06-21</time></div>
+                    <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="has-link-black-ter is-size-6">以太坊C++源码解析（二）大数据类型</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（一）Worker类">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-18T03:42:19.000Z">2019-06-18</time></div>
+                    <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="has-link-black-ter is-size-6">以太坊C++源码解析（一）Worker类</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
     </div>
 </div>
 
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                标签
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/以太坊-C-源码/">
+                        <span class="tag">以太坊 C++ 源码</span>
+                        <span class="tag is-grey">5</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
     
     
         <div class="column-right-shadow is-hidden-widescreen ">
         
-            
-<div class="card widget">
-    <div class="card-content">
-        <h3 class="menu-label">
-            最新文章
-        </h3>
-        
-        <article class="media">
-            
-            <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/desert.jpg" alt="以太坊C++源码解析（三）p2p(1)">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-21T07:49:11.000Z">2019-06-21</time></div>
-                    <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="has-link-black-ter is-size-6">以太坊C++源码解析（三）p2p(1)</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-        <article class="media">
-            
-            <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/plant.jpg" alt="以太坊C++源码解析（二）大数据类型">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-21T05:36:35.000Z">2019-06-21</time></div>
-                    <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="has-link-black-ter is-size-6">以太坊C++源码解析（二）大数据类型</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-        <article class="media">
-            
-            <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/flower.jpg" alt="以太坊C++源码解析（一）Worker类">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-18T03:42:19.000Z">2019-06-18</time></div>
-                    <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="has-link-black-ter is-size-6">以太坊C++源码解析（一）Worker类</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-    </div>
-</div>
-
-        
-            <div class="card widget">
-    <div class="card-content">
-        <div class="menu">
-        <h3 class="menu-label">
-            归档
-        </h3>
-        <ul class="menu-list">
-        
-        <li>
-            <a class="level is-marginless" href="/archives/2019/06/">
-                <span class="level-start">
-                    <span class="level-item">六月 2019</span>
-                </span>
-                <span class="level-end">
-                    <span class="level-item tag">3</span>
-                </span>
-            </a>
-        </li>
-        
-        </ul>
-        </div>
-    </div>
-</div>
-        
-            <div class="card widget">
-    <div class="card-content">
-        <div class="menu">
-            <h3 class="menu-label">
-                标签
-            </h3>
-            <div class="field is-grouped is-grouped-multiline">
-                
-                <div class="control">
-                    <a class="tags has-addons" href="/tags/以太坊-C-源码/">
-                        <span class="tag">以太坊 C++ 源码</span>
-                        <span class="tag is-grey">2</span>
-                    </a>
-                </div>
-                
-            </div>
-        </div>
-    </div>
-</div>
-        
         </div>
     
 </div>
 
                 
-
-
-
-
-<div class="column is-4-tablet is-4-desktop is-3-widescreen is-hidden-touch is-hidden-desktop-only has-order-3 column-right ">
-    
-        
-<div class="card widget">
-    <div class="card-content">
-        <h3 class="menu-label">
-            最新文章
-        </h3>
-        
-        <article class="media">
-            
-            <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/desert.jpg" alt="以太坊C++源码解析（三）p2p(1)">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-21T07:49:11.000Z">2019-06-21</time></div>
-                    <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="has-link-black-ter is-size-6">以太坊C++源码解析（三）p2p(1)</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-        <article class="media">
-            
-            <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/plant.jpg" alt="以太坊C++源码解析（二）大数据类型">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-21T05:36:35.000Z">2019-06-21</time></div>
-                    <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="has-link-black-ter is-size-6">以太坊C++源码解析（二）大数据类型</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-        <article class="media">
-            
-            <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/flower.jpg" alt="以太坊C++源码解析（一）Worker类">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-18T03:42:19.000Z">2019-06-18</time></div>
-                    <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="has-link-black-ter is-size-6">以太坊C++源码解析（一）Worker类</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-    </div>
-</div>
-
-    
-        <div class="card widget">
-    <div class="card-content">
-        <div class="menu">
-        <h3 class="menu-label">
-            归档
-        </h3>
-        <ul class="menu-list">
-        
-        <li>
-            <a class="level is-marginless" href="/archives/2019/06/">
-                <span class="level-start">
-                    <span class="level-item">六月 2019</span>
-                </span>
-                <span class="level-end">
-                    <span class="level-item tag">3</span>
-                </span>
-            </a>
-        </li>
-        
-        </ul>
-        </div>
-    </div>
-</div>
-    
-        <div class="card widget">
-    <div class="card-content">
-        <div class="menu">
-            <h3 class="menu-label">
-                标签
-            </h3>
-            <div class="field is-grouped is-grouped-multiline">
-                
-                <div class="control">
-                    <a class="tags has-addons" href="/tags/以太坊-C-源码/">
-                        <span class="tag">以太坊 C++ 源码</span>
-                        <span class="tag is-grey">2</span>
-                    </a>
-                </div>
-                
-            </div>
-        </div>
-    </div>
-</div>
-    
-    
-</div>
-
             </div>
         </div>
     </section>

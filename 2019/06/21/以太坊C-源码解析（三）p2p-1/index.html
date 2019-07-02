@@ -15,12 +15,12 @@
 <meta property="og:site_name" content="星空工作室">
 <meta property="og:description" content="整个以太坊p2p代码分为两部分，一部分是基于UDP的节点发现协议，另一部分是基于TCP的传输协议，我们先来看第一部分。这部分主要代码在libp2p\NodeTable.h文件中。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://yoursite.com/images/desert.jpg">
-<meta property="og:updated_time" content="2019-06-27T01:55:14.270Z">
+<meta property="og:image" content="http://yoursite.com/images/og_image.png">
+<meta property="og:updated_time" content="2019-07-02T03:19:02.177Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="以太坊C++源码解析（三）p2p(1)">
 <meta name="twitter:description" content="整个以太坊p2p代码分为两部分，一部分是基于UDP的节点发现协议，另一部分是基于TCP的传输协议，我们先来看第一部分。这部分主要代码在libp2p\NodeTable.h文件中。">
-<meta name="twitter:image" content="http://yoursite.com/images/desert.jpg">
+<meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
 
 
 
@@ -88,7 +88,7 @@
 
 <link rel="stylesheet" href="/css/style.css">
 </head>
-<body class="is-3-column">
+<body class="is-2-column">
     <nav class="navbar navbar-main">
     <div class="container">
         <div class="navbar-brand is-flex-center">
@@ -102,15 +102,13 @@
             
             <div class="navbar-start">
                 
-                <a class="navbar-item" href="/">Home</a>
+                <a class="navbar-item" href="/">主页</a>
                 
-                <a class="navbar-item" href="/archives">Archives</a>
+                <a class="navbar-item" href="/archives">存档</a>
                 
-                <a class="navbar-item" href="/categories">Categories</a>
+                <a class="navbar-item" href="/categories">分类</a>
                 
-                <a class="navbar-item" href="/tags">Tags</a>
-                
-                <a class="navbar-item" href="/about">About</a>
+                <a class="navbar-item" href="/tags">标签</a>
                 
             </div>
             
@@ -139,13 +137,7 @@
     <section class="section">
         <div class="container">
             <div class="columns">
-                <div class="column is-8-tablet is-8-desktop is-6-widescreen has-order-2 column-main"><div class="card">
-    
-    <div class="card-image">
-        <span class="image is-7by1">
-            <img class="thumbnail" src="/images/desert.jpg" alt="以太坊C++源码解析（三）p2p(1)">
-        </span>
-    </div>
+                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main"><div class="card">
     
     <div class="card-content article ">
         
@@ -161,7 +153,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    7 分钟 读完 (大约 1012 个字)
+                    7 分钟 读完 (大约 1019 个字)
                 </span>
                 
                 
@@ -184,58 +176,30 @@
 <li>Pong</li>
 </ul>
 <p>#doDiscovery<br>NodeTable类是包含在<code>Host</code>类中的，<code>Host</code>类处理p2p模块的一个接口类，后面会谈到。我们先看<code>NodeTable</code>类的构造函数，里面有这段代码：</p>
-<pre><code>m_socketPointer-&gt;connect();
-doDiscovery();</code></pre><p>其中第一行的<code>connnect()</code>函数名称有点误导，其实是socket绑定本地端口（默认端口UDP30303），并开始接收外面的数据包。<br>第二行的<code>doDiscovery()</code>函数比较重要，我们来看实现代码：</p>
-<pre><code>m_timers.schedule(c_bucketRefresh.count(), [this](boost::system::error_code const&amp; _ec)
-{
-    // ...
-    NodeID randNodeId;
-    crypto::Nonce::get().ref().copyTo(randNodeId.ref().cropped(0, h256::size));
-    crypto::Nonce::get().ref().copyTo(randNodeId.ref().cropped(h256::size, h256::size));
-    doDiscover(randNodeId);
-});</code></pre><p>无关的代码已省略。<br>可以看到这个函数其实是启动了一个定时器，每隔<code>c_bucketRefresh</code>时间执行一个lambda函数，这个lambda函数产生了一个随机节点，并调用了<code>doDiscover()</code>函数。<br><code>c_bucketRefresh</code>定义：</p>
-<pre><code>std::chrono::milliseconds const c_bucketRefresh = std::chrono::milliseconds(7200);</code></pre><p>得出结论，这个函数就是每隔7200ms刷新一次k桶，也就是产生一个随机节点，并调用<code>doDiscover()</code>。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">m_socketPointer-&gt;connect();</span><br><span class="line">doDiscovery();</span><br></pre></td></tr></table></figure>
+
+<p>其中第一行的<code>connnect()</code>函数名称有点误导，其实是socket绑定本地端口（默认端口UDP30303），并开始接收外面的数据包。<br>第二行的<code>doDiscovery()</code>函数比较重要，我们来看实现代码：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">m_timers.schedule(c_bucketRefresh.count(), [<span class="hljs-keyword">this</span>](boost::system::error_code <span class="hljs-keyword">const</span>&amp; _ec)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-comment">// ...</span></span><br><span class="line">    NodeID randNodeId;</span><br><span class="line">    crypto::Nonce::get().ref().copyTo(randNodeId.ref().cropped(<span class="hljs-number">0</span>, h256::size));</span><br><span class="line">    crypto::Nonce::get().ref().copyTo(randNodeId.ref().cropped(h256::size, h256::size));</span><br><span class="line">    doDiscover(randNodeId);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>无关的代码已省略。<br>可以看到这个函数其实是启动了一个定时器，每隔<code>c_bucketRefresh</code>时间执行一个lambda函数，这个lambda函数产生了一个随机节点，并调用了<code>doDiscover()</code>函数。<br><code>c_bucketRefresh</code>定义：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-built_in">std</span>::chrono::milliseconds <span class="hljs-keyword">const</span> c_bucketRefresh = <span class="hljs-built_in">std</span>::chrono::milliseconds(<span class="hljs-number">7200</span>);</span><br></pre></td></tr></table></figure>
+
+<p>得出结论，这个函数就是每隔7200ms刷新一次k桶，也就是产生一个随机节点，并调用<code>doDiscover()</code>。</p>
 <p>#doDiscover<br>我们再来看看<code>doDiscover()</code>函数的实现：</p>
-<pre><code>if (_round == s_maxSteps)
-{
-    LOG(m_logger) &lt;&lt; &quot;Terminating discover after &quot; &lt;&lt; _round &lt;&lt; &quot; rounds.&quot;;
-    doDiscovery();
-     return;
-}
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">if</span> (_round == s_maxSteps)</span><br><span class="line">&#123;</span><br><span class="line">    LOG(m_logger) &lt;&lt; <span class="hljs-string">"Terminating discover after "</span> &lt;&lt; _round &lt;&lt; <span class="hljs-string">" rounds."</span>;</span><br><span class="line">    doDiscovery();</span><br><span class="line">     <span class="hljs-keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">auto</span> nearest = nearestNodeEntries(_node);</span><br><span class="line"><span class="hljs-keyword">for</span> (<span class="hljs-keyword">unsigned</span> i = <span class="hljs-number">0</span>; i &lt; nearest.size() &amp;&amp; tried.size() &lt; s_alpha; i++)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">auto</span> r = nearest[i];</span><br><span class="line">    <span class="hljs-function">FindNode <span class="hljs-title">p</span><span class="hljs-params">(r-&gt;endpoint, _node)</span></span>;</span><br><span class="line">    p.sign(m_secret);</span><br><span class="line">    m_socketPointer-&gt;send(p);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">m_timers.schedule(c_reqTimeout.count() * <span class="hljs-number">2</span>, [<span class="hljs-keyword">this</span>, _node, _round, _tried](boost::system::error_code <span class="hljs-keyword">const</span>&amp; _ec)</span><br><span class="line">&#123;</span><br><span class="line">    doDiscover(_node, _round + <span class="hljs-number">1</span>, _tried);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
-auto nearest = nearestNodeEntries(_node);
-for (unsigned i = 0; i &lt; nearest.size() &amp;&amp; tried.size() &lt; s_alpha; i++)
-{
-    auto r = nearest[i];
-    FindNode p(r-&gt;endpoint, _node);
-    p.sign(m_secret);
-    m_socketPointer-&gt;send(p);
-}
-
-m_timers.schedule(c_reqTimeout.count() * 2, [this, _node, _round, _tried](boost::system::error_code const&amp; _ec)
-{
-    doDiscover(_node, _round + 1, _tried);
-});</code></pre><p>注：这里的代码已经经过简化，省略了部分不影响理解流程的代码。<br>这部分代码可以分成三段，第一段和第三段代码都是用来做循环用的，并产生一个定时器，保证每隔<code>c_reqTimeout.count() * 2</code>时间间隔会调用一次<code>doDiscover()</code>，并且保证调用次数不超过<code>s_maxSteps</code>。
+<p>注：这里的代码已经经过简化，省略了部分不影响理解流程的代码。<br>这部分代码可以分成三段，第一段和第三段代码都是用来做循环用的，并产生一个定时器，保证每隔<code>c_reqTimeout.count() * 2</code>时间间隔会调用一次<code>doDiscover()</code>，并且保证调用次数不超过<code>s_maxSteps</code>。
 这两个常量定义如下：</p>
-<pre><code>std::chrono::milliseconds const c_reqTimeout = std::chrono::milliseconds(300);
-static unsigned const s_maxSteps = boost::static_log2&lt;s_bits&gt;::value; // 值为8</code></pre><p>第二段代码比较重要，这里涉及到了一个重要的函数nearestNodeEntries()，根据字面意思是取最近的节点列表，并向这些节点发送FindNode消息。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-built_in">std</span>::chrono::milliseconds <span class="hljs-keyword">const</span> c_reqTimeout = <span class="hljs-built_in">std</span>::chrono::milliseconds(<span class="hljs-number">300</span>);</span><br><span class="line"><span class="hljs-keyword">static</span> <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">const</span> s_maxSteps = boost::static_log2&lt;s_bits&gt;::value; <span class="hljs-comment">// 值为8</span></span><br></pre></td></tr></table></figure>
+
+<p>第二段代码比较重要，这里涉及到了一个重要的函数nearestNodeEntries()，根据字面意思是取最近的节点列表，并向这些节点发送FindNode消息。</p>
 <p>#nearestNodeEntries<br><code>nearestNodeEntries()</code>函数代码：</p>
-<pre><code>vector&lt;shared_ptr&lt;NodeEntry&gt;&gt; NodeTable::nearestNodeEntries(NodeID _target)
-{
-   // ..
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-built_in">vector</span>&lt;<span class="hljs-built_in">shared_ptr</span>&lt;NodeEntry&gt;&gt; NodeTable::nearestNodeEntries(NodeID _target)</span><br><span class="line">&#123;</span><br><span class="line">   <span class="hljs-comment">// ..</span></span><br><span class="line"></span><br><span class="line">    <span class="hljs-built_in">map</span>&lt;<span class="hljs-keyword">unsigned</span>, <span class="hljs-built_in">list</span>&lt;<span class="hljs-built_in">shared_ptr</span>&lt;NodeEntry&gt;&gt;&gt; found;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-comment">// ...</span></span><br><span class="line"></span><br><span class="line">    <span class="hljs-built_in">vector</span>&lt;<span class="hljs-built_in">shared_ptr</span>&lt;NodeEntry&gt;&gt; ret;</span><br><span class="line">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span>&amp; nodes: found)</span><br><span class="line">        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> <span class="hljs-keyword">const</span>&amp; n: nodes.second)</span><br><span class="line">            <span class="hljs-keyword">if</span> (ret.size() &lt; s_bucketSize &amp;&amp; !!n-&gt;endpoint &amp;&amp; n-&gt;endpoint.isAllowed())</span><br><span class="line">                ret.push_back(n);</span><br><span class="line">    <span class="hljs-keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    map&lt;unsigned, list&lt;shared_ptr&lt;NodeEntry&gt;&gt;&gt; found;
+<p>同样，为了避免贴大段代码影响读者的信息，我这里做了简化，只贴出重要代码。<br>其实这段代码就是从K桶里把节点取出来，然后按距离从小到大排序，返回序列的前<code>s_bucketSize</code>也就是16个节点。这里巧妙的使用了<code>std::map</code>，并将距离作为key，我们都知道std::map是采用红黑树实现，节点默认会按key从小到大排列，因此把节点放到这个map里就自动排序了，免去了手动排序的过程。<br>这里需要注意的是距离是逻辑上的距离，并无实际意义，只是一种节点的筛选方式，我们可以看下距离的计算方式：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> <span class="hljs-title">distance</span><span class="hljs-params">(NodeID <span class="hljs-keyword">const</span>&amp; _a, NodeID <span class="hljs-keyword">const</span>&amp; _b)</span> </span>&#123; u256 d = sha3(_a) ^ sha3(_b); <span class="hljs-keyword">unsigned</span> ret; <span class="hljs-keyword">for</span> (ret = <span class="hljs-number">0</span>; d &gt;&gt;= <span class="hljs-number">1</span>; ++ret) &#123;&#125;; <span class="hljs-keyword">return</span> ret; &#125;</span><br></pre></td></tr></table></figure>
 
-    // ...
-
-    vector&lt;shared_ptr&lt;NodeEntry&gt;&gt; ret;
-    for (auto&amp; nodes: found)
-        for (auto const&amp; n: nodes.second)
-            if (ret.size() &lt; s_bucketSize &amp;&amp; !!n-&gt;endpoint &amp;&amp; n-&gt;endpoint.isAllowed())
-                ret.push_back(n);
-    return ret;
-}</code></pre><p>同样，为了避免贴大段代码影响读者的信息，我这里做了简化，只贴出重要代码。<br>其实这段代码就是从K桶里把节点取出来，然后按距离从小到大排序，返回序列的前<code>s_bucketSize</code>也就是16个节点。这里巧妙的使用了<code>std::map</code>，并将距离作为key，我们都知道std::map是采用红黑树实现，节点默认会按key从小到大排列，因此把节点放到这个map里就自动排序了，免去了手动排序的过程。<br>这里需要注意的是距离是逻辑上的距离，并无实际意义，只是一种节点的筛选方式，我们可以看下距离的计算方式：</p>
-<pre><code>static int distance(NodeID const&amp; _a, NodeID const&amp; _b) { u256 d = sha3(_a) ^ sha3(_b); unsigned ret; for (ret = 0; d &gt;&gt;= 1; ++ret) {}; return ret; }</code></pre><p>可以看到这个距离只是两个节点hash做异或，然后计算二进制最高位为1的位的位数。</p>
+<p>可以看到这个距离只是两个节点hash做异或，然后计算二进制最高位为1的位的位数。</p>
 
         </div>
         
@@ -304,6 +268,13 @@ static unsigned const s_maxSteps = boost::static_log2&lt;s_bits&gt;::value; // �
 <div class="card card-transparent">
     <div class="level post-navigation is-flex-wrap is-mobile">
         
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/07/02/以太坊C-源码解析（三）p2p-2/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">以太坊C++源码解析（三）p2p(2)</span>
+            </a>
+        </div>
+        
         
         <div class="level-end">
             <a class="level level-item has-link-grey  article-nav-next" href="/2019/06/21/以太坊C-源码解析（二）大数据类型/">
@@ -322,7 +293,7 @@ static unsigned const s_maxSteps = boost::static_log2&lt;s_bits&gt;::value; // �
 
 
 
-<div class="column is-4-tablet is-4-desktop is-3-widescreen  has-order-1 column-left ">
+<div class="column is-4-tablet is-3-desktop is-3-widescreen  has-order-1 column-left ">
     
         
 <div class="card widget">
@@ -359,7 +330,7 @@ static unsigned const s_maxSteps = boost::static_log2&lt;s_bits&gt;::value; // �
                         文章
                     </p>
                     <p class="title has-text-weight-normal">
-                        3
+                        5
                     </p>
                 </div>
             </div>
@@ -430,45 +401,6 @@ static unsigned const s_maxSteps = boost::static_log2&lt;s_bits&gt;::value; // �
         
     
         
-
-<div class="card widget">
-    <div class="card-content">
-        <div class="menu">
-        <h3 class="menu-label">
-            链接
-        </h3>
-        <ul class="menu-list">
-        
-            <li>
-                <a class="level is-mobile" href="https://hexo.io" target="_blank">
-                    <span class="level-left">
-                        <span class="level-item">Hexo</span>
-                    </span>
-                    <span class="level-right">
-                        <span class="level-item tag">hexo.io</span>
-                    </span>
-                </a>
-            </li>
-        
-            <li>
-                <a class="level is-mobile" href="https://github.com/ppoffice" target="_blank">
-                    <span class="level-left">
-                        <span class="level-item">PPOffice</span>
-                    </span>
-                    <span class="level-right">
-                        <span class="level-item tag">github.com</span>
-                    </span>
-                </a>
-            </li>
-        
-        </ul>
-        </div>
-    </div>
-</div>
-
-
-    
-        
 <div class="card widget">
     <div class="card-content">
         <div class="menu">
@@ -482,7 +414,7 @@ static unsigned const s_maxSteps = boost::static_log2&lt;s_bits&gt;::value; // �
                 <span class="level-item">以太坊C++源码解析</span>
             </span>
             <span class="level-end">
-                <span class="level-item tag">3</span>
+                <span class="level-item tag">5</span>
             </span>
         </a></li>
             </ul>
@@ -494,254 +426,136 @@ static unsigned const s_maxSteps = boost::static_log2&lt;s_bits&gt;::value; // �
 <div class="card widget">
     <div class="card-content">
         <h3 class="menu-label">
-            标签云
+            最新文章
         </h3>
-        <a href="/tags/以太坊-C-源码/" style="font-size: 10px;">以太坊 C++ 源码</a>
+        
+        <article class="media">
+            
+            <a href="/2019/07/02/以太坊C-源码解析（三）p2p-3/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（三）p2p(3)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-02T04:03:50.000Z">2019-07-02</time></div>
+                    <a href="/2019/07/02/以太坊C-源码解析（三）p2p-3/" class="has-link-black-ter is-size-6">以太坊C++源码解析（三）p2p(3)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/07/02/以太坊C-源码解析（三）p2p-2/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（三）p2p(2)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-02T03:58:10.000Z">2019-07-02</time></div>
+                    <a href="/2019/07/02/以太坊C-源码解析（三）p2p-2/" class="has-link-black-ter is-size-6">以太坊C++源码解析（三）p2p(2)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（三）p2p(1)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-21T07:49:11.000Z">2019-06-21</time></div>
+                    <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="has-link-black-ter is-size-6">以太坊C++源码解析（三）p2p(1)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（二）大数据类型">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-21T05:36:35.000Z">2019-06-21</time></div>
+                    <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="has-link-black-ter is-size-6">以太坊C++源码解析（二）大数据类型</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（一）Worker类">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-18T03:42:19.000Z">2019-06-18</time></div>
+                    <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="has-link-black-ter is-size-6">以太坊C++源码解析（一）Worker类</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
     </div>
 </div>
 
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                标签
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/以太坊-C-源码/">
+                        <span class="tag">以太坊 C++ 源码</span>
+                        <span class="tag is-grey">5</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
     
     
         <div class="column-right-shadow is-hidden-widescreen ">
         
-            
-<div class="card widget">
-    <div class="card-content">
-        <h3 class="menu-label">
-            最新文章
-        </h3>
-        
-        <article class="media">
-            
-            <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/desert.jpg" alt="以太坊C++源码解析（三）p2p(1)">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-21T07:49:11.000Z">2019-06-21</time></div>
-                    <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="has-link-black-ter is-size-6">以太坊C++源码解析（三）p2p(1)</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-        <article class="media">
-            
-            <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/plant.jpg" alt="以太坊C++源码解析（二）大数据类型">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-21T05:36:35.000Z">2019-06-21</time></div>
-                    <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="has-link-black-ter is-size-6">以太坊C++源码解析（二）大数据类型</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-        <article class="media">
-            
-            <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/flower.jpg" alt="以太坊C++源码解析（一）Worker类">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-18T03:42:19.000Z">2019-06-18</time></div>
-                    <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="has-link-black-ter is-size-6">以太坊C++源码解析（一）Worker类</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-    </div>
-</div>
-
-        
-            <div class="card widget">
-    <div class="card-content">
-        <div class="menu">
-        <h3 class="menu-label">
-            归档
-        </h3>
-        <ul class="menu-list">
-        
-        <li>
-            <a class="level is-marginless" href="/archives/2019/06/">
-                <span class="level-start">
-                    <span class="level-item">六月 2019</span>
-                </span>
-                <span class="level-end">
-                    <span class="level-item tag">3</span>
-                </span>
-            </a>
-        </li>
-        
-        </ul>
-        </div>
-    </div>
-</div>
-        
-            <div class="card widget">
-    <div class="card-content">
-        <div class="menu">
-            <h3 class="menu-label">
-                标签
-            </h3>
-            <div class="field is-grouped is-grouped-multiline">
-                
-                <div class="control">
-                    <a class="tags has-addons" href="/tags/以太坊-C-源码/">
-                        <span class="tag">以太坊 C++ 源码</span>
-                        <span class="tag is-grey">2</span>
-                    </a>
-                </div>
-                
-            </div>
-        </div>
-    </div>
-</div>
-        
         </div>
     
 </div>
 
                 
-
-
-
-
-<div class="column is-4-tablet is-4-desktop is-3-widescreen is-hidden-touch is-hidden-desktop-only has-order-3 column-right ">
-    
-        
-<div class="card widget">
-    <div class="card-content">
-        <h3 class="menu-label">
-            最新文章
-        </h3>
-        
-        <article class="media">
-            
-            <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/desert.jpg" alt="以太坊C++源码解析（三）p2p(1)">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-21T07:49:11.000Z">2019-06-21</time></div>
-                    <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="has-link-black-ter is-size-6">以太坊C++源码解析（三）p2p(1)</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-        <article class="media">
-            
-            <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/plant.jpg" alt="以太坊C++源码解析（二）大数据类型">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-21T05:36:35.000Z">2019-06-21</time></div>
-                    <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="has-link-black-ter is-size-6">以太坊C++源码解析（二）大数据类型</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-        <article class="media">
-            
-            <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/flower.jpg" alt="以太坊C++源码解析（一）Worker类">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-18T03:42:19.000Z">2019-06-18</time></div>
-                    <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="has-link-black-ter is-size-6">以太坊C++源码解析（一）Worker类</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-    </div>
-</div>
-
-    
-        <div class="card widget">
-    <div class="card-content">
-        <div class="menu">
-        <h3 class="menu-label">
-            归档
-        </h3>
-        <ul class="menu-list">
-        
-        <li>
-            <a class="level is-marginless" href="/archives/2019/06/">
-                <span class="level-start">
-                    <span class="level-item">六月 2019</span>
-                </span>
-                <span class="level-end">
-                    <span class="level-item tag">3</span>
-                </span>
-            </a>
-        </li>
-        
-        </ul>
-        </div>
-    </div>
-</div>
-    
-        <div class="card widget">
-    <div class="card-content">
-        <div class="menu">
-            <h3 class="menu-label">
-                标签
-            </h3>
-            <div class="field is-grouped is-grouped-multiline">
-                
-                <div class="control">
-                    <a class="tags has-addons" href="/tags/以太坊-C-源码/">
-                        <span class="tag">以太坊 C++ 源码</span>
-                        <span class="tag is-grey">2</span>
-                    </a>
-                </div>
-                
-            </div>
-        </div>
-    </div>
-</div>
-    
-    
-</div>
-
             </div>
         </div>
     </section>

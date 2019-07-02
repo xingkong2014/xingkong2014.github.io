@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>以太坊C++源码解析（三）p2p(3) - 星空工作室</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+    <meta name="description" content="我们再来深入了解一下Host类里节点和本节点是怎么交互的，在上一节可以看到节点到了Host类后，会调用Host::connect来连接对方，我们可以看下connect()函数实现代码：">
+<meta name="keywords" content="以太坊 C++ 源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="以太坊C++源码解析（三）p2p(3)">
+<meta property="og:url" content="http://yoursite.com/2019/07/02/以太坊C-源码解析（三）p2p-3/index.html">
+<meta property="og:site_name" content="星空工作室">
+<meta property="og:description" content="我们再来深入了解一下Host类里节点和本节点是怎么交互的，在上一节可以看到节点到了Host类后，会调用Host::connect来连接对方，我们可以看下connect()函数实现代码：">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/images/og_image.png">
+<meta property="og:updated_time" content="2019-07-02T04:06:03.253Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="以太坊C++源码解析（三）p2p(3)">
+<meta name="twitter:description" content="我们再来深入了解一下Host类里节点和本节点是怎么交互的，在上一节可以看到节点到了Host类后，会调用Host::connect来连接对方，我们可以看下connect()函数实现代码：">
+<meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
+
+
+
+
+
+
+
+<link rel="icon" href="/images/favicon.svg">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css">
+
+
+    
+    
+    
+    <style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+    
+
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+    
+
+    
+    
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+
+    
+    
+    
+    
+
+<link rel="stylesheet" href="/css/back-to-top.css">
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+<link rel="stylesheet" href="/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+    
+    
+    
+
+    
+    
+    
+
+
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="is-2-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/">
+            
+                <img src="/images/logo.svg" alt="以太坊C++源码解析（三）p2p(3)" height="28">
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item" href="/">主页</a>
+                
+                <a class="navbar-item" href="/archives">存档</a>
+                
+                <a class="navbar-item" href="/categories">分类</a>
+                
+                <a class="navbar-item" href="/tags">标签</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                    
+                    
+                    <a class="navbar-item" target="_blank" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus">
+                        
+                        <i class="fab fa-github"></i>
+                        
+                    </a>
+                    
+                
+                
+                
+                <a class="navbar-item search" title="搜索" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main"><div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-07-02T04:03:50.000Z">2019-07-02</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    11 分钟 读完 (大约 1689 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                以太坊C++源码解析（三）p2p(3)
+            
+        </h1>
+        <div class="content">
+            <p>我们再来深入了解一下Host类里节点和本节点是怎么交互的，在上一节可以看到节点到了Host类后，会调用<code>Host::connect</code>来连接对方，我们可以看下<code>connect()</code>函数实现代码：</p>
+<a id="more"></a>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> Host::connect(<span class="hljs-built_in">std</span>::<span class="hljs-built_in">shared_ptr</span>&lt;Peer&gt; <span class="hljs-keyword">const</span>&amp; _p)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-comment">// ...</span></span><br><span class="line">    bi::tcp::<span class="hljs-function">endpoint <span class="hljs-title">ep</span><span class="hljs-params">(_p-&gt;endpoint)</span></span>;</span><br><span class="line">    cnetdetails &lt;&lt; <span class="hljs-string">"Attempting connection to node "</span> &lt;&lt; _p-&gt;id &lt;&lt; <span class="hljs-string">"@"</span> &lt;&lt; ep &lt;&lt; <span class="hljs-string">" from "</span> &lt;&lt; id();</span><br><span class="line">    <span class="hljs-keyword">auto</span> socket = make_shared&lt;RLPXSocket&gt;(m_ioService);</span><br><span class="line">    socket-&gt;ref().async_connect(ep, [=](boost::system::error_code <span class="hljs-keyword">const</span>&amp; ec)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-comment">// ...</span></span><br><span class="line">    </span><br><span class="line">        <span class="hljs-keyword">if</span> (ec)</span><br><span class="line">        &#123;</span><br><span class="line">            cnetdetails &lt;&lt; <span class="hljs-string">"Connection refused to node "</span> &lt;&lt; _p-&gt;id &lt;&lt; <span class="hljs-string">"@"</span> &lt;&lt; ep &lt;&lt; <span class="hljs-string">" ("</span></span><br><span class="line">                    &lt;&lt; ec.message() &lt;&lt; <span class="hljs-string">")"</span>;</span><br><span class="line">            <span class="hljs-comment">// Manually set error (session not present)</span></span><br><span class="line">            _p-&gt;m_lastDisconnect = TCPError;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="hljs-keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            cnetdetails &lt;&lt; <span class="hljs-string">"Connecting to "</span> &lt;&lt; _p-&gt;id &lt;&lt; <span class="hljs-string">"@"</span> &lt;&lt; ep;</span><br><span class="line">            <span class="hljs-keyword">auto</span> handshake = make_shared&lt;RLPXHandshake&gt;(<span class="hljs-keyword">this</span>, socket, _p-&gt;id);</span><br><span class="line">            &#123;</span><br><span class="line">                Guard l(x_connecting);</span><br><span class="line">                m_connecting.push_back(handshake);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            handshake-&gt;start();</span><br><span class="line">        &#125;</span><br><span class="line">    </span><br><span class="line">        m_pendingPeerConns.erase(nptr);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到先是创建了一个socket，然后用<code>async_connect()</code>异步去连接这个节点，连接成功后生成了一个<code>RLPXHandshake</code>类，并调用了<code>RLPXHandshake::start()</code>来开启握手流程，这里并没有连接成功后就传输数据，因为对方可能并不是一个ethereum节点，或者是运行协议不匹配的节点，握手流程就用来过滤掉不合格的节点，只有通过了握手流程才能进行数据交互。<br>注：在cpp-ethereum项目中底层数据传输用的是boost::asio库，作为准标准库中一员，boost::asio广泛应用在c++跨平台网络开发中，不熟悉的读者建议先去网络上阅读相关文档，后续文档假定读者已经了解了boost::asio库。</p>
+<p>#RLPXHandshake类<br><code>RLPXHandshake::start()</code>函数实际调用了<code>RLPXHandshake::transition()</code>函数，这个函数是<code>RLPXHandshake</code>类的核心，从中可以看到握手的流程。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> RLPXHandshake::transition(boost::system::error_code _ech)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-comment">// ...</span></span><br><span class="line">    <span class="hljs-keyword">if</span> (m_nextState == New)</span><br><span class="line">    &#123;</span><br><span class="line">        m_nextState = AckAuth;</span><br><span class="line">        <span class="hljs-keyword">if</span> (m_originated)</span><br><span class="line">            writeAuth();</span><br><span class="line">        <span class="hljs-keyword">else</span></span><br><span class="line">            readAuth();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (m_nextState == AckAuth)</span><br><span class="line">    &#123;</span><br><span class="line">        m_nextState = WriteHello;</span><br><span class="line">        <span class="hljs-keyword">if</span> (m_originated)</span><br><span class="line">            readAck();</span><br><span class="line">        <span class="hljs-keyword">else</span></span><br><span class="line">            writeAck();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (m_nextState == AckAuthEIP8)</span><br><span class="line">    &#123;</span><br><span class="line">        m_nextState = WriteHello;</span><br><span class="line">        <span class="hljs-keyword">if</span> (m_originated)</span><br><span class="line">            readAck();</span><br><span class="line">        <span class="hljs-keyword">else</span></span><br><span class="line">            writeAckEIP8();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (m_nextState == WriteHello)</span><br><span class="line">    &#123;</span><br><span class="line">        m_nextState = ReadHello;</span><br><span class="line">        <span class="hljs-comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (m_nextState == ReadHello)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-comment">// Authenticate and decrypt initial hello frame with initial RLPXFrameCoder</span></span><br><span class="line">        <span class="hljs-comment">// and request m_host to start session.</span></span><br><span class="line">        m_nextState = StartSession;</span><br><span class="line">        <span class="hljs-comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>精简后的流程还是比较清楚的，初始时候<code>m_nextState</code>值为<code>New</code>，那么正常的握手状态是<code>New -&gt; AckAuth -&gt; WriteHello -&gt; ReadHello -&gt; StartSession</code>。如果这些环节中某一步出错了，那么该节点不会走到最后，否则最后的状态会变成<code>StartSession</code>，那么到了<code>StartSession</code>状态后会发生什么事呢？我们再看看看这部分代码：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (m_nextState == ReadHello)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-comment">// Authenticate and decrypt initial hello frame with initial RLPXFrameCoder</span></span><br><span class="line">    <span class="hljs-comment">// and request m_host to start session.</span></span><br><span class="line">    m_nextState = StartSession;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-comment">// read frame header</span></span><br><span class="line">    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">const</span> handshakeSize = <span class="hljs-number">32</span>;</span><br><span class="line">    m_handshakeInBuffer.resize(handshakeSize);</span><br><span class="line">    ba::async_read(m_socket-&gt;ref(), boost::asio::buffer(m_handshakeInBuffer, handshakeSize), [<span class="hljs-keyword">this</span>, self](boost::system::error_code ec, <span class="hljs-built_in">std</span>::<span class="hljs-keyword">size_t</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-keyword">if</span> (ec)</span><br><span class="line">            transition(ec);</span><br><span class="line">        <span class="hljs-keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="hljs-comment">// ...</span></span><br><span class="line">        </span><br><span class="line">            <span class="hljs-comment">/// rlp of header has protocol-type, sequence-id[, total-packet-size]</span></span><br><span class="line">            bytes headerRLP(header.size() - <span class="hljs-number">3</span> - h128::size);	<span class="hljs-comment">// this is always 32 - 3 - 16 = 13. wtf?</span></span><br><span class="line">            bytesConstRef(&amp;header).cropped(<span class="hljs-number">3</span>).copyTo(&amp;headerRLP);</span><br><span class="line">        </span><br><span class="line">            <span class="hljs-comment">/// read padded frame and mac</span></span><br><span class="line">            m_handshakeInBuffer.resize(frameSize + ((<span class="hljs-number">16</span> - (frameSize % <span class="hljs-number">16</span>)) % <span class="hljs-number">16</span>) + h128::size);</span><br><span class="line">            ba::async_read(m_socket-&gt;ref(), boost::asio::buffer(m_handshakeInBuffer, m_handshakeInBuffer.size()), [<span class="hljs-keyword">this</span>, self, headerRLP](boost::system::error_code ec, <span class="hljs-built_in">std</span>::<span class="hljs-keyword">size_t</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="hljs-comment">// ...</span></span><br><span class="line">            </span><br><span class="line">                <span class="hljs-keyword">if</span> (ec)</span><br><span class="line">                    transition(ec);</span><br><span class="line">                <span class="hljs-keyword">else</span></span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="hljs-comment">// ...</span></span><br><span class="line">                    <span class="hljs-keyword">try</span></span><br><span class="line">                    &#123;</span><br><span class="line">                        RLP rlp(frame.cropped(<span class="hljs-number">1</span>), RLP::ThrowOnFail | RLP::FailIfTooSmall);</span><br><span class="line">                        m_host-&gt;startPeerSession(m_remote, rlp, move(m_io), m_socket);</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="hljs-keyword">catch</span> (<span class="hljs-built_in">std</span>::exception <span class="hljs-keyword">const</span>&amp; _e)</span><br><span class="line">                    &#123;</span><br><span class="line">                        cnetlog &lt;&lt; <span class="hljs-string">"Handshake causing an exception: "</span> &lt;&lt; _e.what();</span><br><span class="line">                        m_nextState = Error;</span><br><span class="line">                        transition();</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当状态从<code>ReadHello</code>向<code>StartSession</code>转变时，连续收了两个包，然后调用了<code>Host::startPeerSession()</code>，节点在<code>RLPXHandshake</code>类转了一圈以后，如果合格的话又回到了<code>Host</code>类中，从此开始新的征程。</p>
+<p>#Host类<br>我们之前看到<code>Host</code>类通过<code>requirePeer()</code>函数推动了P2P发现模块的运转，但同时它又是整个P2P传输模块中的发动机，因此要研究ethereum网络部分需要从这里开始。<br>我们在<code>libp2p\Host.h</code>文件中找到<code>Host</code>类定义，其中有两个成员变量，熟悉boost::asio库的读者一定不陌生：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ba::io_service m_ioService;</span><br><span class="line">bi::tcp::acceptor m_tcp4Acceptor;</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>m_ioService</code>就是Host类的核心了，它负责处理异步任务，当异步任务完成后调用完成句柄。<br><code>m_tcp4Acceptor</code>是负责接收连接的对象，它内部封装了一个socket对象。我们都知道服务端的socket需要经过创建，绑定IP端口，侦听，Accept这几个阶段，对于<code>m_tcp4Acceptor</code>而言也是这样：</p>
+<ul>
+<li>创建</li>
+</ul>
+<p>直接在<code>Host</code>类初始化列表中进行创建</p>
+<ul>
+<li>绑定IP端口和侦听</li>
+</ul>
+<p>这部分是在<code>Network::tcp4Listen()</code>函数中完成的：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">for</span> (<span class="hljs-keyword">unsigned</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">2</span>; ++i)</span><br><span class="line">&#123;</span><br><span class="line">    bi::tcp::<span class="hljs-function">endpoint <span class="hljs-title">endpoint</span><span class="hljs-params">(listenIP, requirePort ? _netPrefs.listenPort : (i ? <span class="hljs-number">0</span> : c_defaultListenPort))</span></span>;</span><br><span class="line">    <span class="hljs-keyword">try</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-comment">/// ...</span></span><br><span class="line">        _acceptor.open(endpoint.protocol());</span><br><span class="line">        _acceptor.set_option(ba::socket_base::reuse_address(reuse));</span><br><span class="line">        _acceptor.bind(endpoint);</span><br><span class="line">        _acceptor.listen();</span><br><span class="line">        <span class="hljs-keyword">return</span> _acceptor.local_endpoint().port();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">catch</span> (...)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-comment">// bail if this is first attempt &amp;&amp; port was specificed, or second attempt failed (random port)</span></span><br><span class="line">        <span class="hljs-keyword">if</span> (i || requirePort)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="hljs-comment">// both attempts failed</span></span><br><span class="line">            cwarn &lt;&lt; <span class="hljs-string">"Couldn't start accepting connections on host. Failed to accept socket on "</span> &lt;&lt; listenIP &lt;&lt; <span class="hljs-string">":"</span> &lt;&lt; _netPrefs.listenPort &lt;&lt; <span class="hljs-string">".\n"</span> &lt;&lt; boost::current_exception_diagnostic_information();</span><br><span class="line">            _acceptor.close();</span><br><span class="line">            <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">      </span><br><span class="line">        _acceptor.close();</span><br><span class="line">        <span class="hljs-keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意到这里有一个循环，是用来防止端口被占用的。如果第一次端口被占用，则第二次使用0端口，也就是随机端口。<br>在这个函数里，<code>_acceptor</code>依次完成了设置协议，设置端口重用，绑定端口和侦听。</p>
+<ul>
+<li>Accept</li>
+</ul>
+<p>又回到了<code>Host</code>类，在<code>Host::runAcceptor()</code>函数中，我们能找到以下代码：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">auto</span> socket = make_shared&lt;RLPXSocket&gt;(m_ioService); </span><br><span class="line">m_tcp4Acceptor.async_accept(socket-&gt;ref(), [=](boost::system::error_code ec)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-comment">// ...</span></span><br><span class="line">    <span class="hljs-keyword">try</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-comment">// incoming connection; we don't yet know nodeid</span></span><br><span class="line">        <span class="hljs-keyword">auto</span> handshake = make_shared&lt;RLPXHandshake&gt;(<span class="hljs-keyword">this</span>, socket);</span><br><span class="line">        m_connecting.push_back(handshake);</span><br><span class="line">        handshake-&gt;start();</span><br><span class="line">        success = <span class="hljs-literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">catch</span> (Exception <span class="hljs-keyword">const</span>&amp; _e)</span><br><span class="line">    &#123;</span><br><span class="line">        cwarn &lt;&lt; <span class="hljs-string">"ERROR: "</span> &lt;&lt; diagnostic_information(_e);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">catch</span> (<span class="hljs-built_in">std</span>::exception <span class="hljs-keyword">const</span>&amp; _e)</span><br><span class="line">    &#123;</span><br><span class="line">        cwarn &lt;&lt; <span class="hljs-string">"ERROR: "</span> &lt;&lt; _e.what();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">if</span> (!success)</span><br><span class="line">        socket-&gt;ref().close();</span><br><span class="line">    runAcceptor();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><code>m_tcp4Acceptor</code>通过<code>async_accept()</code>异步接收连接，当一个连接到来的时候发生了什么？我们又看到了熟悉的代码，是的！创建了一个RLPXHandshake类，又开始了握手流程。ethereum对于接收到的连接也是谨慎的，同样需要先进行校验，这里的握手流程与前面<code>connect</code>时的流程稍有不同，区别就在<code>RLPXHandshake::m_originated</code>上，<code>connect</code>时的<code>m_originated</code>值为true，也就是先向对方发送自己的Auth包，而被动接收时<code>m_originated</code>为false，会等待对方发过来Auth包。<br>最后别忘了启动<code>Host::m_ioService</code>，这部分被放在<code>doWork()</code>函数里，还记得<code>doWork()</code>函数吗？因为<code>Host</code>类是从<code>Worker</code>类继承而来，<code>doWork()</code>会在一个循环中被调用。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> Host::doWork()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">try</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-keyword">if</span> (m_run)</span><br><span class="line">            m_ioService.run();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">catch</span> (<span class="hljs-built_in">std</span>::exception <span class="hljs-keyword">const</span>&amp; _e)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是<code>doWork()</code>不是会被循环调用的吗？难道<code>m_ioService.run()</code>也会重复调用吗？答案是不会，因为<code>m_ioService.run()</code>会阻塞在这里，所以只会执行一次。<br>至此<code>m_tcp4Acceptor</code>能够愉快地接收到TCP连接，并把连接交给<code>RLPXHandshake</code>类去处理了。</p>
+
+        </div>
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/以太坊-C-源码/">以太坊 C++ 源码</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3>
+        <div class="buttons is-centered">
+            
+                
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>支付宝</span>
+    <div class="qrcode"><img src="/images/Allipay.jpg" alt="支付宝"></div>
+</a>
+
+                
+                
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>微信</span>
+    <div class="qrcode"><img src="/images/WeChat.png" alt="微信"></div>
+</a>
+
+                
+                <!-- Visit https://www.paypal.com/donate/buttons/ to get your donate button -->
+
+<a class="button is-warning donate" onclick="document.getElementById(&#39;paypal-donate-form&#39;).submit()">
+    <span class="icon is-small">
+        <i class="fab fa-paypal"></i>
+    </span>
+    <span>Paypal</span>
+</a>
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" id="paypal-donate-form">
+    <input type="hidden" name="cmd" value="_donations">
+    <input type="hidden" name="business" value="xingkong2000cn@gmail.com">
+    <input type="hidden" name="currency_code" value="USD">
+</form>
+
+                
+        </div>
+    </div>
+</div>
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/07/02/以太坊C-源码解析（三）p2p-2/">
+                <span class="level-item">以太坊C++源码解析（三）p2p(2)</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-3-desktop is-3-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered">
+                <div>
+                    
+                        <img class="image is-128x128 has-mb-6" src="/images/images.jpg" alt="Will Wang">
+                    
+                    
+                    <p class="is-size-4 is-block">
+                        Will Wang
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-block">
+                        Software Engineer
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>China</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        文章
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        5
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        分类
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        1
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        标签
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        1
+                    </p>
+                </div>
+            </div>
+        </nav>
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://github.com/xingkong2014" target="_blank">
+                关注我</a>
+        </div>
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Github" href="https://github.com/xingkong2014">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Facebook" href="https://facebook.com">
+                
+                <i class="fab fa-facebook"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Twitter" href="https://twitter.com">
+                
+                <i class="fab fa-twitter"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Dribbble" href="https://dribbble.com">
+                
+                <i class="fab fa-dribbble"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="RSS" href="/">
+                
+                <i class="fas fa-rss"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                分类
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/categories/以太坊C-源码解析/">
+            <span class="level-start">
+                <span class="level-item">以太坊C++源码解析</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">5</span>
+            </span>
+        </a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            最新文章
+        </h3>
+        
+        <article class="media">
+            
+            <a href="/2019/07/02/以太坊C-源码解析（三）p2p-3/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（三）p2p(3)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-02T04:03:50.000Z">2019-07-02</time></div>
+                    <a href="/2019/07/02/以太坊C-源码解析（三）p2p-3/" class="has-link-black-ter is-size-6">以太坊C++源码解析（三）p2p(3)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/07/02/以太坊C-源码解析（三）p2p-2/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（三）p2p(2)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-02T03:58:10.000Z">2019-07-02</time></div>
+                    <a href="/2019/07/02/以太坊C-源码解析（三）p2p-2/" class="has-link-black-ter is-size-6">以太坊C++源码解析（三）p2p(2)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（三）p2p(1)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-21T07:49:11.000Z">2019-06-21</time></div>
+                    <a href="/2019/06/21/以太坊C-源码解析（三）p2p-1/" class="has-link-black-ter is-size-6">以太坊C++源码解析（三）p2p(1)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（二）大数据类型">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-21T05:36:35.000Z">2019-06-21</time></div>
+                    <a href="/2019/06/21/以太坊C-源码解析（二）大数据类型/" class="has-link-black-ter is-size-6">以太坊C++源码解析（二）大数据类型</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="以太坊C++源码解析（一）Worker类">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-06-18T03:42:19.000Z">2019-06-18</time></div>
+                    <a href="/2019/06/18/以太坊C-源码解析（一）Worker类/" class="has-link-black-ter is-size-6">以太坊C++源码解析（一）Worker类</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+    </div>
+</div>
+
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                标签
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/以太坊-C-源码/">
+                        <span class="tag">以太坊 C++ 源码</span>
+                        <span class="tag is-grey">5</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+        </div>
+    
+</div>
+
+                
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/">
+                
+                    <img src="/images/logo.svg" alt="以太坊C++源码解析（三）p2p(3)" height="28">
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2019 Will Wang&nbsp;
+                Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a>
+                
+                </p>
+            </div>
+            <div class="level-end">
+            
+                <div class="field has-addons is-flex-center-mobile has-mt-5-mobile is-flex-wrap is-flex-middle">
+                
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Creative Commons" href="https://creativecommons.org/">
+                        
+                        <i class="fab fa-creative-commons"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/">
+                        
+                        <i class="fab fa-creative-commons-by"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus">
+                        
+                        <i class="fab fa-github"></i>
+                        
+                    </a>
+                </p>
+                
+                </div>
+            
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("zh-CN");</script>
+
+
+    
+    
+    
+    <script src="/js/animation.js"></script>
+    
+
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+    <script src="/js/gallery.js" defer></script>
+    
+
+    
+    
+
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+
+    
+    
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+});
+</script>
+
+    
+    
+
+<a id="back-to-top" title="回到顶端" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/js/back-to-top.js" defer></script>
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+    <script src="/js/clipboard.js" defer></script>
+    
+
+    
+    
+    
+
+
+<script src="/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="想要查找什么...">
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/js/insight.js" defer></script>
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/insight.css">
+    
+</body>
+</html>

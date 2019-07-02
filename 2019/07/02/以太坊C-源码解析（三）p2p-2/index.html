@@ -7,19 +7,19 @@
 
 
 
-    <meta name="description" content="#K桶的实现这里借用一下别人的图：可以看到这个就是一个二维数组，可以简单定义为：int bucket[256][16]其中第一维是从0-255表示距离，第二维记录16个节点。">
+    <meta name="description" content="K桶的实现这里借用一下别人的图：可以看到这个就是一个二维数组，可以简单定义为：int bucket[256][16]其中第一维是从0-255表示距离，第二维记录16个节点。">
 <meta name="keywords" content="以太坊 C++ 源码">
 <meta property="og:type" content="article">
 <meta property="og:title" content="以太坊C++源码解析（三）p2p(2)">
 <meta property="og:url" content="http://yoursite.com/2019/07/02/以太坊C-源码解析（三）p2p-2/index.html">
 <meta property="og:site_name" content="星空工作室">
-<meta property="og:description" content="#K桶的实现这里借用一下别人的图：可以看到这个就是一个二维数组，可以简单定义为：int bucket[256][16]其中第一维是从0-255表示距离，第二维记录16个节点。">
+<meta property="og:description" content="K桶的实现这里借用一下别人的图：可以看到这个就是一个二维数组，可以简单定义为：int bucket[256][16]其中第一维是从0-255表示距离，第二维记录16个节点。">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/og_image.png">
-<meta property="og:updated_time" content="2019-07-02T04:02:25.912Z">
+<meta property="og:updated_time" content="2019-07-02T09:58:17.752Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="以太坊C++源码解析（三）p2p(2)">
-<meta name="twitter:description" content="#K桶的实现这里借用一下别人的图：可以看到这个就是一个二维数组，可以简单定义为：int bucket[256][16]其中第一维是从0-255表示距离，第二维记录16个节点。">
+<meta name="twitter:description" content="K桶的实现这里借用一下别人的图：可以看到这个就是一个二维数组，可以简单定义为：int bucket[256][16]其中第一维是从0-255表示距离，第二维记录16个节点。">
 <meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
 
 
@@ -144,7 +144,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    10 分钟 读完 (大约 1492 个字)
+                    10 分钟 读完 (大约 1477 个字)
                 </span>
                 
                 
@@ -157,7 +157,7 @@
             
         </h1>
         <div class="content">
-            <p>#K桶的实现<br>这里借用一下别人的图：<br><img src="https://upload-images.jianshu.io/upload_images/1603745-6588648ac3b01d1a.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="7785cda87f6f415c9aa5336d6bd88985.jpg"><br>可以看到这个就是一个二维数组，可以简单定义为：<code>int bucket[256][16]</code>其中第一维是从0-255表示距离，第二维记录16个节点。</p>
+            <h1 id="K桶的实现"><a href="#K桶的实现" class="headerlink" title="K桶的实现"></a>K桶的实现</h1><p>这里借用一下别人的图：<br><img src="https://i.loli.net/2019/07/02/5d1b2a47ea59695761.jpg" alt="k桶"><br>可以看到这个就是一个二维数组，可以简单定义为：<code>int bucket[256][16]</code>其中第一维是从0-255表示距离，第二维记录16个节点。</p>
 <a id="more"></a>
 <p>在代码中实际的K桶定义是：</p>
 <figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">array</span>&lt;NodeBucket, s_bins&gt; m_state;</span><br></pre></td></tr></table></figure>

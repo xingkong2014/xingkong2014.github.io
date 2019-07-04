@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>以太坊C++源码解析（四）RLPStream类 - 星空工作室</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+    <meta name="description" content="RLP是一种特殊的二进制编码解码方式，以太坊里数据包都是采用这种方式编码的，和传统的结构相比，RLP编码更节省空间，提高网络传输效率，缺点就是不太直观，这种编码解码原理介绍在下面这边文章里讲得很好，还附有python的实现代码：RLP编码和解码。但是在本文里我们来看看在C++里的实现。">
+<meta name="keywords" content="以太坊 C++ 源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="以太坊C++源码解析（四）RLPStream类">
+<meta property="og:url" content="http://yoursite.com/2019/07/04/以太坊C-源码解析（四）RLPStream类/index.html">
+<meta property="og:site_name" content="星空工作室">
+<meta property="og:description" content="RLP是一种特殊的二进制编码解码方式，以太坊里数据包都是采用这种方式编码的，和传统的结构相比，RLP编码更节省空间，提高网络传输效率，缺点就是不太直观，这种编码解码原理介绍在下面这边文章里讲得很好，还附有python的实现代码：RLP编码和解码。但是在本文里我们来看看在C++里的实现。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/images/og_image.png">
+<meta property="og:updated_time" content="2019-07-04T02:55:50.839Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="以太坊C++源码解析（四）RLPStream类">
+<meta name="twitter:description" content="RLP是一种特殊的二进制编码解码方式，以太坊里数据包都是采用这种方式编码的，和传统的结构相比，RLP编码更节省空间，提高网络传输效率，缺点就是不太直观，这种编码解码原理介绍在下面这边文章里讲得很好，还附有python的实现代码：RLP编码和解码。但是在本文里我们来看看在C++里的实现。">
+<meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
+
+
+
+
+
+
+
+<link rel="icon" href="/images/favicon.svg">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css">
+
+
+    
+    
+    
+    <style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+    
+
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+    
+
+    
+    
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+
+    
+    
+    
+    
+
+<link rel="stylesheet" href="/css/back-to-top.css">
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+<link rel="stylesheet" href="/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+    
+    
+    
+
+    
+    
+    
+
+
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="is-2-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/">
+            
+                <img src="/images/logo.svg" alt="以太坊C++源码解析（四）RLPStream类" height="28">
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item" href="/">主页</a>
+                
+                <a class="navbar-item" href="/archives">存档</a>
+                
+                <a class="navbar-item" href="/categories">分类</a>
+                
+                <a class="navbar-item" href="/tags">标签</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                
+                
+                <a class="navbar-item search" title="搜索" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main"><div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-07-04T02:52:06.000Z">2019-07-04</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    10 分钟 读完 (大约 1446 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                以太坊C++源码解析（四）RLPStream类
+            
+        </h1>
+        <div class="content">
+            <p>RLP是一种特殊的二进制编码解码方式，以太坊里数据包都是采用这种方式编码的，和传统的结构相比，RLP编码更节省空间，提高网络传输效率，缺点就是不太直观，这种编码解码原理介绍在下面这边文章里讲得很好，还附有python的实现代码：<a href="https://blog.csdn.net/ggq89/article/details/78629008" target="_blank" rel="noopener">RLP编码和解码</a>。但是在本文里我们来看看在C++里的实现。</p>
+<a id="more"></a>
+<p><code>RLPStream</code>类和<code>RLP</code>类在<code>libdevcore\RLP.h</code>和<code>RLP.cpp</code>文件中，前者负责编码，后者负责解码。</p>
+<h1 id="RLPStream类"><a href="#RLPStream类" class="headerlink" title="RLPStream类"></a>RLPStream类</h1><p>我们先来看看编码方式吧，RLP里面可以放两种数据，一种是字符串(Data)，另一种是列表(List)，字符串又分为单个字符和多个字符，我们一个一个来。</p>
+<ul>
+<li>单个字符<br>RLP类提供了这些方法来编码单个字符：</li>
+</ul>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function">RLPStream&amp; <span class="hljs-title">append</span><span class="hljs-params">(<span class="hljs-keyword">unsigned</span> _s)</span> </span>&#123; <span class="hljs-keyword">return</span> append(bigint(_s)); &#125;</span><br><span class="line"><span class="hljs-function">RLPStream&amp; <span class="hljs-title">append</span><span class="hljs-params">(u160 _s)</span> </span>&#123; <span class="hljs-keyword">return</span> append(bigint(_s)); &#125;</span><br><span class="line"><span class="hljs-function">RLPStream&amp; <span class="hljs-title">append</span><span class="hljs-params">(u256 _s)</span> </span>&#123; <span class="hljs-keyword">return</span> append(bigint(_s)); &#125;</span><br><span class="line"><span class="hljs-function">RLPStream&amp; <span class="hljs-title">append</span><span class="hljs-params">(bigint _s)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>可见单个字符先都会被转换为bigint，再进行转换。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">RLPStream&amp; RLPStream::append(bigint _i)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (!_i)</span><br><span class="line">        m_out.push_back(c_rlpDataImmLenStart);</span><br><span class="line">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (_i &lt; c_rlpDataImmLenStart)</span><br><span class="line">        m_out.push_back((byte)_i);</span><br><span class="line">    <span class="hljs-keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-keyword">unsigned</span> br = bytesRequired(_i);</span><br><span class="line">        <span class="hljs-keyword">if</span> (br &lt; c_rlpDataImmLenCount)</span><br><span class="line">            m_out.push_back((byte)(br + c_rlpDataImmLenStart));</span><br><span class="line">        <span class="hljs-keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="hljs-keyword">auto</span> brbr = bytesRequired(br);</span><br><span class="line">            <span class="hljs-keyword">if</span> (c_rlpDataIndLenZero + brbr &gt; <span class="hljs-number">0xff</span>)</span><br><span class="line">                BOOST_THROW_EXCEPTION(RLPException() &lt;&lt; errinfo_comment(<span class="hljs-string">"Number too large for RLP"</span>));</span><br><span class="line">            m_out.push_back((byte)(c_rlpDataIndLenZero + brbr));</span><br><span class="line">            pushInt(br, brbr);</span><br><span class="line">        &#125;</span><br><span class="line">        pushInt(_i, br);</span><br><span class="line">    &#125;</span><br><span class="line">    noteAppended();</span><br><span class="line">    <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>如果<code>_i</code>是0，则直接存入<code>c_rlpDataImmLenStart</code>，也就是0x80</li>
+<li>如果<code>_i</code>小于0x80，则直接存入<code>_i</code></li>
+<li>否则计算存入<code>_i</code>所需要的字节数<code>br</code>，如果<code>br</code>小于<code>c_rlpDataImmLenCount</code>也就是8，则先存入<code>br + 0x80</code>，再调用<code>pushInt(_i, br);</code>存入<code>_i</code></li>
+<li>计算存入<code>br</code>所需的长度<code>brbr</code>，也就是<code>_i</code>长度的长度，将<code>c_rlpDataIndLenZero + brbr</code>存进去，即<code>0xb7 + brbr</code>，再调用<code>pushInt(_i, br);</code>存入<code>_i</code></li>
+<li>注意到后面还有个函数<code>noteAppended();</code>这个是用来处理列表长度的，后面再谈。</li>
+</ol>
+<ul>
+<li>多个字符<br>保存多个字符有下列方法：</li>
+</ul>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function">RLPStream&amp; <span class="hljs-title">append</span><span class="hljs-params">(bytesConstRef _s, <span class="hljs-keyword">bool</span> _compact = <span class="hljs-literal">false</span>)</span></span>;</span><br><span class="line"><span class="hljs-function">RLPStream&amp; <span class="hljs-title">append</span><span class="hljs-params">(bytes <span class="hljs-keyword">const</span>&amp; _s)</span> </span>&#123; <span class="hljs-keyword">return</span> append(bytesConstRef(&amp;_s)); &#125;</span><br><span class="line"><span class="hljs-function">RLPStream&amp; <span class="hljs-title">append</span><span class="hljs-params">(<span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> <span class="hljs-keyword">const</span>&amp; _s)</span> </span>&#123; <span class="hljs-keyword">return</span> append(bytesConstRef(_s)); &#125;</span><br><span class="line"><span class="hljs-function">RLPStream&amp; <span class="hljs-title">append</span><span class="hljs-params">(<span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* _s)</span> </span>&#123; <span class="hljs-keyword">return</span> append(<span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span>(_s)); &#125;</span><br><span class="line"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">unsigned</span> N&gt; <span class="hljs-function">RLPStream&amp; <span class="hljs-title">append</span><span class="hljs-params">(FixedHash&lt;N&gt; _s, <span class="hljs-keyword">bool</span> _compact = <span class="hljs-literal">false</span>, <span class="hljs-keyword">bool</span> _allOrNothing = <span class="hljs-literal">false</span>)</span> </span>&#123; <span class="hljs-keyword">return</span> _allOrNothing &amp;&amp; !_s ? append(bytesConstRef()) : append(_s.ref(), _compact); &#125;</span><br></pre></td></tr></table></figure>
+
+<p>方法都是先转换为字节数组<code>bytesConstRef</code>，然后再编码。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">RLPStream&amp; RLPStream::append(bytesConstRef _s, <span class="hljs-keyword">bool</span> _compact)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">size_t</span> s = _s.size();</span><br><span class="line">    byte <span class="hljs-keyword">const</span>* d = _s.data();</span><br><span class="line">    <span class="hljs-keyword">if</span> (_compact)</span><br><span class="line">        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; i &lt; _s.size() &amp;&amp; !*d; ++i, --s, ++d) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">if</span> (s == <span class="hljs-number">1</span> &amp;&amp; *d &lt; c_rlpDataImmLenStart)</span><br><span class="line">        m_out.push_back(*d);</span><br><span class="line">    <span class="hljs-keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-keyword">if</span> (s &lt; c_rlpDataImmLenCount)</span><br><span class="line">            m_out.push_back((byte)(s + c_rlpDataImmLenStart));</span><br><span class="line">        <span class="hljs-keyword">else</span></span><br><span class="line">            pushCount(s, c_rlpDataIndLenZero);</span><br><span class="line">        appendRaw(bytesConstRef(d, s), <span class="hljs-number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    noteAppended();</span><br><span class="line">    <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>如果是压缩模式，则忽略数组<code>_s</code>开头的0</li>
+<li>如果数组只有单个字符，并且该字符小于0x80，则直接存入该字符</li>
+<li>否则如果数组长度小于0x38，也就是56，则先存入<code>s + 0x80</code>，再调用<code>appendRaw(bytesConstRef(d, s), 0);</code>存入数组本身</li>
+<li>如果数组长度大于等于56，则先存入数组长度<code>s</code>的长度+0xb7，再存入数组长度<code>s</code>，再调用<code>appendRaw(bytesConstRef(d, s), 0);</code>存入数组本身</li>
+<li>也调用了<code>noteAppended();</code></li>
+</ol>
+<ul>
+<li>列表<br>存入列表有这些方法：</li>
+</ul>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">template</span> &lt;<span class="hljs-class"><span class="hljs-keyword">class</span> _<span class="hljs-title">T</span>&gt; <span class="hljs-title">RLPStream</span>&amp; <span class="hljs-title">append</span>(<span class="hljs-title">std</span>:</span>:<span class="hljs-built_in">vector</span>&lt;_T&gt; <span class="hljs-keyword">const</span>&amp; _s) &#123; <span class="hljs-keyword">return</span> appendVector(_s); &#125;</span><br><span class="line"><span class="hljs-keyword">template</span> &lt;<span class="hljs-class"><span class="hljs-keyword">class</span> _<span class="hljs-title">T</span>&gt; <span class="hljs-title">RLPStream</span>&amp; <span class="hljs-title">appendVector</span>(<span class="hljs-title">std</span>:</span>:<span class="hljs-built_in">vector</span>&lt;_T&gt; <span class="hljs-keyword">const</span>&amp; _s) &#123; appendList(_s.size()); <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> <span class="hljs-keyword">const</span>&amp; i: _s) append(i); <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>; &#125;</span><br><span class="line"><span class="hljs-keyword">template</span> &lt;<span class="hljs-class"><span class="hljs-keyword">class</span> _<span class="hljs-title">T</span>, <span class="hljs-title">size_t</span> <span class="hljs-title">S</span>&gt; <span class="hljs-title">RLPStream</span>&amp; <span class="hljs-title">append</span>(<span class="hljs-title">std</span>:</span>:<span class="hljs-built_in">array</span>&lt;_T, S&gt; <span class="hljs-keyword">const</span>&amp; _s) &#123; appendList(_s.size()); <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> <span class="hljs-keyword">const</span>&amp; i: _s) append(i); <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>; &#125;</span><br><span class="line"><span class="hljs-keyword">template</span> &lt;<span class="hljs-class"><span class="hljs-keyword">class</span> _<span class="hljs-title">T</span>&gt; <span class="hljs-title">RLPStream</span>&amp; <span class="hljs-title">append</span>(<span class="hljs-title">std</span>:</span>:<span class="hljs-built_in">set</span>&lt;_T&gt; <span class="hljs-keyword">const</span>&amp; _s) &#123; appendList(_s.size()); <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> <span class="hljs-keyword">const</span>&amp; i: _s) append(i); <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>; &#125;</span><br><span class="line"><span class="hljs-keyword">template</span> &lt;<span class="hljs-class"><span class="hljs-keyword">class</span> _<span class="hljs-title">T</span>&gt; <span class="hljs-title">RLPStream</span>&amp; <span class="hljs-title">append</span>(<span class="hljs-title">std</span>:</span>:<span class="hljs-built_in">unordered_set</span>&lt;_T&gt; <span class="hljs-keyword">const</span>&amp; _s) &#123; appendList(_s.size()); <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> <span class="hljs-keyword">const</span>&amp; i: _s) append(i); <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>; &#125;</span><br><span class="line"><span class="hljs-keyword">template</span> &lt;<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">T</span>, <span class="hljs-title">class</span> <span class="hljs-title">U</span>&gt; <span class="hljs-title">RLPStream</span>&amp; <span class="hljs-title">append</span>(<span class="hljs-title">std</span>:</span>:pair&lt;T, U&gt; <span class="hljs-keyword">const</span>&amp; _s) &#123; appendList(<span class="hljs-number">2</span>); append(_s.first); append(_s.second); <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们选这个来看：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">template</span> &lt;<span class="hljs-class"><span class="hljs-keyword">class</span> _<span class="hljs-title">T</span>&gt; <span class="hljs-title">RLPStream</span>&amp; <span class="hljs-title">appendVector</span>(<span class="hljs-title">std</span>:</span>:<span class="hljs-built_in">vector</span>&lt;_T&gt; <span class="hljs-keyword">const</span>&amp; _s) &#123; appendList(_s.size()); <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> <span class="hljs-keyword">const</span>&amp; i: _s) append(i); <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>可见先是调用<code>appendList(_s.size())</code>存入列表大小，然后依次存入列表元素。<br>但是当我们深入<code>appendList()</code>函数里时，发现不是这么回事：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">RLPStream&amp; RLPStream::appendList(<span class="hljs-keyword">size_t</span> _items)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (_items)</span><br><span class="line">        m_listStack.push_back(<span class="hljs-built_in">std</span>::make_pair(_items, m_out.size()));</span><br><span class="line">    <span class="hljs-keyword">else</span></span><br><span class="line">        appendList(bytes());</span><br><span class="line">    <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里只是将列表元素个数和当前输出缓冲区大小放入了一个列表栈<code>m_listStack</code>里，并没有存入任何东西。那列表长度是什么时候放进<code>m_out</code>的呢？答案就是前面提到的<code>noteAppended()</code>函数。<br><code>noteAppended()</code>函数代码为：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> RLPStream::noteAppended(<span class="hljs-keyword">size_t</span> _itemCount)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (!_itemCount)</span><br><span class="line">        <span class="hljs-keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">while</span> (m_listStack.size())</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-comment">/// ...</span></span><br><span class="line">        m_listStack.back().first -= _itemCount;</span><br><span class="line">        <span class="hljs-keyword">if</span> (m_listStack.back().first)</span><br><span class="line">            <span class="hljs-keyword">break</span>;</span><br><span class="line">        <span class="hljs-keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="hljs-keyword">auto</span> p = m_listStack.back().second;</span><br><span class="line">            m_listStack.pop_back();</span><br><span class="line">            <span class="hljs-keyword">size_t</span> s = m_out.size() - p;		<span class="hljs-comment">// list size</span></span><br><span class="line">            <span class="hljs-keyword">auto</span> brs = bytesRequired(s);</span><br><span class="line">            <span class="hljs-keyword">unsigned</span> encodeSize = s &lt; c_rlpListImmLenCount ? <span class="hljs-number">1</span> : (<span class="hljs-number">1</span> + brs);</span><br><span class="line">            <span class="hljs-keyword">auto</span> os = m_out.size();</span><br><span class="line">            m_out.resize(os + encodeSize);</span><br><span class="line">            memmove(m_out.data() + p + encodeSize, m_out.data() + p, os - p);</span><br><span class="line">            <span class="hljs-keyword">if</span> (s &lt; c_rlpListImmLenCount)</span><br><span class="line">                m_out[p] = (byte)(c_rlpListStart + s);</span><br><span class="line">            <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (c_rlpListIndLenZero + brs &lt;= <span class="hljs-number">0xff</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                m_out[p] = (byte)(c_rlpListIndLenZero + brs);</span><br><span class="line">                byte* b = &amp;(m_out[p + brs]);</span><br><span class="line">                <span class="hljs-keyword">for</span> (; s; s &gt;&gt;= <span class="hljs-number">8</span>)</span><br><span class="line">                    *(b--) = (byte)s;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        _itemCount = <span class="hljs-number">1</span>;	<span class="hljs-comment">// for all following iterations, we've effectively appended a single item only since we completed a list.</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>m_out</code>中每存入一个字符或者一个字符串都要调用一次这个函数，这个函数是从后向前遍历<code>m_listStack</code>。</p>
+<ol>
+<li>判断当前列表是否全部存完，如果没有存完则退出：</li>
+</ol>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">if</span> (m_listStack.back().first)</span><br><span class="line">    <span class="hljs-keyword">break</span>;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>否则先计算列表成员在<code>m_out</code>中实际占用空间的大小：</li>
+</ol>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">size_t</span> s = m_out.size() - p;</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>再计算出要存入这个<code>s</code>所需空间的大小<code>encodeSize</code>。</li>
+<li>将数组整体向后移动<code>encodeSize</code>个空间</li>
+</ol>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">memmove(m_out.data() + p + encodeSize, m_out.data() + p, os - p);</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li>将’s’编码并填进空位中。</li>
+</ol>
+<p><code>RLPStream</code>类将数据编码进<code>m_out</code>以后，就可以通过<code>swapOut()</code>函数导出为字节数组了。</p>
+
+        </div>
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/以太坊-C-源码/">以太坊 C++ 源码</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3>
+        <div class="buttons is-centered">
+            
+                
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>支付宝</span>
+    <div class="qrcode"><img src="/images/Allipay.jpg" alt="支付宝"></div>
+</a>
+
+                
+                
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>微信</span>
+    <div class="qrcode"><img src="/images/WeChat.png" alt="微信"></div>
+</a>
+
+                
+                <!-- Visit https://www.paypal.com/donate/buttons/ to get your donate button -->
+
+<a class="button is-warning donate" onclick="document.getElementById(&#39;paypal-donate-form&#39;).submit()">
+    <span class="icon is-small">
+        <i class="fab fa-paypal"></i>
+    </span>
+    <span>Paypal</span>
+</a>
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" id="paypal-donate-form">
+    <input type="hidden" name="cmd" value="_donations">
+    <input type="hidden" name="business" value="xingkong2000cn@gmail.com">
+    <input type="hidden" name="currency_code" value="USD">
+</form>
+
+                
+        </div>
+    </div>
+</div>
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/07/04/以太坊C-源码解析（三）p2p-6/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">以太坊C++源码解析（三）p2p(6)</span>
+            </a>
+        </div>
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/07/04/以太坊C-源码解析（三）p2p-5/">
+                <span class="level-item">以太坊C++源码解析（三）p2p(5)</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-3-desktop is-3-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered">
+                <div>
+                    
+                        <img class="image is-128x128 has-mb-6" src="/images/images.jpg" alt="Will Wang">
+                    
+                    
+                    <p class="is-size-4 is-block">
+                        Will Wang
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-block">
+                        Software Engineer
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>China</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        文章
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        20
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        分类
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        1
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        标签
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        1
+                    </p>
+                </div>
+            </div>
+        </nav>
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://github.com/xingkong2014" target="_blank">
+                关注我</a>
+        </div>
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Github" href="https://github.com/xingkong2014">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Facebook" href="https://facebook.com">
+                
+                <i class="fab fa-facebook"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Twitter" href="https://twitter.com">
+                
+                <i class="fab fa-twitter"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Dribbble" href="https://dribbble.com">
+                
+                <i class="fab fa-dribbble"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="RSS" href="/">
+                
+                <i class="fas fa-rss"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                分类
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/categories/以太坊C-源码解析/">
+            <span class="level-start">
+                <span class="level-item">以太坊C++源码解析</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">20</span>
+            </span>
+        </a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            最新文章
+        </h3>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:45:17.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（九）区块头/" class="has-link-black-ter is-size-6">以太坊C++源码解析（九）区块头</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:43:03.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（八）交易队列（二）/" class="has-link-black-ter is-size-6">以太坊C++源码解析（八）交易队列（二）</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:39:44.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（八）交易队列（一）/" class="has-link-black-ter is-size-6">以太坊C++源码解析（八）交易队列（一）</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:36:57.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（七）交易/" class="has-link-black-ter is-size-6">以太坊C++源码解析（七）交易</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:35:17.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（五）区块链同步-6/" class="has-link-black-ter is-size-6">以太坊C++源码解析（五）区块链同步(6)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+    </div>
+</div>
+
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                标签
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/以太坊-C-源码/">
+                        <span class="tag">以太坊 C++ 源码</span>
+                        <span class="tag is-grey">20</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+        </div>
+    
+</div>
+
+                
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/">
+                
+                    <img src="/images/logo.svg" alt="以太坊C++源码解析（四）RLPStream类" height="28">
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2019 Will Wang&nbsp;
+                Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a>
+                
+                </p>
+            </div>
+            <div class="level-end">
+            
+                <div class="field has-addons is-flex-center-mobile has-mt-5-mobile is-flex-wrap is-flex-middle">
+                
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Creative Commons" href="https://creativecommons.org/">
+                        
+                        <i class="fab fa-creative-commons"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/">
+                        
+                        <i class="fab fa-creative-commons-by"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus">
+                        
+                        <i class="fab fa-github"></i>
+                        
+                    </a>
+                </p>
+                
+                </div>
+            
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("zh-CN");</script>
+
+
+    
+    
+    
+    <script src="/js/animation.js"></script>
+    
+
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+    <script src="/js/gallery.js" defer></script>
+    
+
+    
+    
+
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+
+    
+    
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+});
+</script>
+
+    
+    
+
+<a id="back-to-top" title="回到顶端" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/js/back-to-top.js" defer></script>
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+    <script src="/js/clipboard.js" defer></script>
+    
+
+    
+    
+    
+
+
+<script src="/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="想要查找什么...">
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/js/insight.js" defer></script>
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/insight.css">
+    
+</body>
+</html>

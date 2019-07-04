@@ -2,19 +2,24 @@
 <html lang="zh">
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-<title>星空工作室</title>
+<title>以太坊C++源码解析（七）交易 - 星空工作室</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-    <meta property="og:type" content="website">
-<meta property="og:title" content="星空工作室">
-<meta property="og:url" content="http://yoursite.com/index.html">
+    <meta name="description" content="以太坊交易类是Transaction，但是这个类几乎没有什么代码，主要代码都在父类TransactionBase中，因此这个类是我们研究的重点。">
+<meta name="keywords" content="以太坊 C++ 源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="以太坊C++源码解析（七）交易">
+<meta property="og:url" content="http://yoursite.com/2019/07/04/以太坊C-源码解析（七）交易/index.html">
 <meta property="og:site_name" content="星空工作室">
+<meta property="og:description" content="以太坊交易类是Transaction，但是这个类几乎没有什么代码，主要代码都在父类TransactionBase中，因此这个类是我们研究的重点。">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/og_image.png">
+<meta property="og:updated_time" content="2019-07-04T03:39:15.274Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="星空工作室">
+<meta name="twitter:title" content="以太坊C++源码解析（七）交易">
+<meta name="twitter:description" content="以太坊交易类是Transaction，但是这个类几乎没有什么代码，主要代码都在父类TransactionBase中，因此这个类是我们研究的重点。">
 <meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
 
 
@@ -89,7 +94,7 @@
         <div class="navbar-brand is-flex-center">
             <a class="navbar-item navbar-logo" href="/">
             
-                <img src="/images/logo.svg" alt="星空工作室" height="28">
+                <img src="/images/logo.svg" alt="以太坊C++源码解析（七）交易" height="28">
             
             </a>
         </div>
@@ -97,7 +102,7 @@
             
             <div class="navbar-start">
                 
-                <a class="navbar-item is-active" href="/">主页</a>
+                <a class="navbar-item" href="/">主页</a>
                 
                 <a class="navbar-item" href="/archives">存档</a>
                 
@@ -123,164 +128,7 @@
     <section class="section">
         <div class="container">
             <div class="columns">
-                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main">
-    <div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-07-04T03:45:17.000Z">2019-07-04</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    1 分钟 读完 (大约 209 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2019/07/04/以太坊C-源码解析（九）区块头/">以太坊C++源码解析（九）区块头</a>
-            
-        </h1>
-        <div class="content">
-            <p>区块头定义位于libethcore\BlockHeader.h文件中，是一个非常简单的类，我们来看看它包含哪些重要数据：</p>
-        </div>
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/07/04/以太坊C-源码解析（九）区块头/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-    <div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-07-04T03:43:03.000Z">2019-07-04</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    7 分钟 读完 (大约 1106 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2019/07/04/以太坊C-源码解析（八）交易队列（二）/">以太坊C++源码解析（八）交易队列（二）</a>
-            
-        </h1>
-        <div class="content">
-            <h1 id="交易队列的输入"><a href="#交易队列的输入" class="headerlink" title="交易队列的输入"></a>交易队列的输入</h1><p>交易队列的输入有两个，分别是接收到其他节点的广播交易和自身节点提交的交易。</p>
-        </div>
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/07/04/以太坊C-源码解析（八）交易队列（二）/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-    <div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-07-04T03:39:44.000Z">2019-07-04</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    7 分钟 读完 (大约 1009 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2019/07/04/以太坊C-源码解析（八）交易队列（一）/">以太坊C++源码解析（八）交易队列（一）</a>
-            
-        </h1>
-        <div class="content">
-            <p>以太坊有两大队列，分别是交易队列<code>TransactionQueue</code>和区块队列<code>BlockQueue</code>，在这里先介绍交易队列。<br>交易队列是用来缓存那些<code>pending</code>交易的，也就是尚未经过确认，未被区块链收录的交易。</p>
-        </div>
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/07/04/以太坊C-源码解析（八）交易队列（一）/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-    <div class="card">
+                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main"><div class="card">
     
     <div class="card-content article ">
         
@@ -305,21 +153,59 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                <a class="has-link-black-ter" href="/2019/07/04/以太坊C-源码解析（七）交易/">以太坊C++源码解析（七）交易</a>
+                以太坊C++源码解析（七）交易
             
         </h1>
         <div class="content">
             <p>以太坊交易类是<code>Transaction</code>，但是这个类几乎没有什么代码，主要代码都在父类<code>TransactionBase</code>中，因此这个类是我们研究的重点。</p>
+<a id="more"></a>
+<h1 id="交易的主要数据"><a href="#交易的主要数据" class="headerlink" title="交易的主要数据"></a>交易的主要数据</h1><p><code>TransactionBase</code>类位于<code>libethcore\TransactionBase.h/cpp</code>中，里面有几个重要的成员：</p>
+<ul>
+<li>u256 m_nonce;<br>这个是交易的nonce，整数，记录交易发送者的发送次数，从0开始，每发送一次nonce加1，主要是用来防止重放攻击的。</li>
+<li>u256 m_value;<br>交易的以太币数量，单位为<strong>wei</strong>，注意这个值可以为0。</li>
+<li>Address m_receiveAddress;<br>交易接收者的以太坊地址</li>
+<li>u256 m_gasPrice;<br>发送者愿意支付的<code>gas price</code>，默认为20,000,000,000wei，也就是20Gwei。这个值越大，交易被确认的速度越快。</li>
+<li>u256 m_gas;<br>发送者愿意支付的gas值，如果为普通交易，gas值固定为21000，如果是智能合约交易，则gas值大于21000。这个值实际上是<code>gas limit</code>，值必须<strong>大于等于</strong>实际消耗的gas，小于的话会直接被区块链拒绝，大于没有关系，因为交易完成后多出来的钱会退回发送者账户。<br>交易费=m_gas * m_gasPrice。</li>
+<li>bytes m_data;<br>这个是创建智能合约交易时附带的交易编码，对于普通交易这个值为空。</li>
+<li>boost::optional<signaturestruct> m_vrs;<br>交易的签名</signaturestruct></li>
+</ul>
+<p>以上是一个交易必须的成员，有人可能会注意到没有发送者的信息，实际上发送者信息隐藏在<code>m_vrs</code>中，<code>m_vrs</code>可以反推出发送者的公钥，从而得到发送者地址。</p>
+<h1 id="交易的分类"><a href="#交易的分类" class="headerlink" title="交易的分类"></a>交易的分类</h1><ol>
+<li>普通交易<br>普通交易是用来交易以太币的，<code>m_gas</code>值为21000，<code>m_data</code>值为空，<code>m_receiveAddress</code>值不为空，<code>m_value</code>值通常不为0</li>
+<li>智能合约交易<br>智能合约交易又分为两种<br>a.  创建智能合约交易<br>这个交易用来创建一个智能合约，<code>m_data</code>值不为空，<code>m_receiveAddress</code>为空，<code>m_value</code>为0<br>b. 普通智能合约交易<br>这个通常用来做代币交易，<code>m_data</code>值不为空，<code>m_receiveAddress</code>为智能合约地址。<h1 id="交易的签名"><a href="#交易的签名" class="headerlink" title="交易的签名"></a>交易的签名</h1>一个交易被发出前必须由发送者用自身的私钥进行签名。 这里因为<code>EIP155</code>的存在，情况又有点复杂。<blockquote>
+<p>关于<code>EIP155</code>大家可以参考<a href="https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md" target="_blank" rel="noopener">eip-155.md</a><br>简单说就是在<code>EIP155</code>之前，交易签名的内容包括<code>m_nonce</code>，<code>m_value</code>，<code>m_receiveAddress</code>，<code>m_gasPrice</code>，<code>m_gas</code>和<code>m_data</code>这六项，<code>EIP155</code>之后，签名内容增加了<code>m_vrs</code>，其中<code>v</code>值设为1，<code>r</code>和<code>s</code>值设为0<br><img src="https://upload-images.jianshu.io/upload_images/1603745-bdd551f923a665b5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="EIP155"></p>
+</blockquote>
+</li>
+</ol>
+<p>在<code>TransactionBase</code>类中有一个成员<code>int m_chainId = -4;</code>来区分是否采用<code>EIP155</code>，-4表示不采用，1表示采用。<br>我们来看具体代码：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> TransactionBase::sign(Secret <span class="hljs-keyword">const</span>&amp; _priv)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">auto</span> sig = dev::sign(_priv, sha3(WithoutSignature));</span><br><span class="line">    SignatureStruct sigStruct = *(SignatureStruct <span class="hljs-keyword">const</span>*)&amp;sig;</span><br><span class="line">    <span class="hljs-keyword">if</span> (sigStruct.isValid())</span><br><span class="line">        m_vrs = sigStruct;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这是创建交易时候的代码，<code>Secret const&amp; _priv</code>为发送者的私钥，最重要的是这句：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">auto</span> sig = dev::sign(_priv, sha3(WithoutSignature));</span><br></pre></td></tr></table></figure>
+
+<p>这句代码又可以分为两句：</p>
+<ul>
+<li>sha3(WithoutSignature)<br>用来对交易数据进行hash运算，这里的交易数据就要区分<code>EIP155</code>了，如果是非<code>EIP155</code>就需要对六项数据做hash，否则需要对九项数据做hash。</li>
+<li>dev::sign(_priv, hash值)<br>对hash结果做签名<br>我们先来看看hash运算：<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">h256 TransactionBase::sha3(IncludeSignature _sig) <span class="hljs-keyword">const</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (_sig == WithSignature &amp;&amp; m_hashWith)</span><br><span class="line">        <span class="hljs-keyword">return</span> m_hashWith;</span><br><span class="line"></span><br><span class="line">    RLPStream s;</span><br><span class="line">    streamRLP(s, _sig, m_chainId &gt; <span class="hljs-number">0</span> &amp;&amp; _sig == WithoutSignature);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">auto</span> ret = dev::sha3(s.out());</span><br><span class="line">    <span class="hljs-keyword">if</span> (_sig == WithSignature)</span><br><span class="line">        m_hashWith = ret;</span><br><span class="line">    <span class="hljs-keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>可见这里是对交易数据先编码成<code>RLP</code>，然后再用<code>dev::sha3()</code>做运算。<br>关键在<code>streamRLP()</code>函数中：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> TransactionBase::streamRLP(RLPStream&amp; _s, IncludeSignature _sig, <span class="hljs-keyword">bool</span> _forEip155hash) <span class="hljs-keyword">const</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (m_type == NullTransaction)</span><br><span class="line">        <span class="hljs-keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    _s.appendList((_sig || _forEip155hash ? <span class="hljs-number">3</span> : <span class="hljs-number">0</span>) + <span class="hljs-number">6</span>);</span><br><span class="line">    _s &lt;&lt; m_nonce &lt;&lt; m_gasPrice &lt;&lt; m_gas;</span><br><span class="line">    <span class="hljs-keyword">if</span> (m_type == MessageCall)</span><br><span class="line">        _s &lt;&lt; m_receiveAddress;</span><br><span class="line">    <span class="hljs-keyword">else</span></span><br><span class="line">        _s &lt;&lt; <span class="hljs-string">""</span>;</span><br><span class="line">    _s &lt;&lt; m_value &lt;&lt; m_data;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">if</span> (_sig)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-keyword">if</span> (!m_vrs)</span><br><span class="line">            BOOST_THROW_EXCEPTION(TransactionIsUnsigned());</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">if</span> (hasZeroSignature())</span><br><span class="line">            _s &lt;&lt; m_chainId;</span><br><span class="line">        <span class="hljs-keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="hljs-keyword">int</span> <span class="hljs-keyword">const</span> vOffset = m_chainId * <span class="hljs-number">2</span> + <span class="hljs-number">35</span>;</span><br><span class="line">            _s &lt;&lt; (m_vrs-&gt;v + vOffset);</span><br><span class="line">        &#125;</span><br><span class="line">        _s &lt;&lt; (u256)m_vrs-&gt;r &lt;&lt; (u256)m_vrs-&gt;s;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (_forEip155hash)</span><br><span class="line">        _s &lt;&lt; m_chainId &lt;&lt; <span class="hljs-number">0</span> &lt;&lt; <span class="hljs-number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这部分代码比较简单，<code>m_type</code>为<code>MessageCall</code>表示非创建合约交易，这时的<code>m_receiveAddress</code>值是有效的。<code>_forEip155hash</code>表示是否采用<code>EIP155</code>，<code>m_chainId</code>默认为-4，所以不采用，因此这个stream里编码的值只有上面那六项。<br><code>dev::sign()</code>签名算法就不贴出来了，有兴趣的可以自己去看，都是一些算法。</p>
+
         </div>
         
-        
-        <div class="level is-mobile">
+        <div class="level is-size-7 is-uppercase">
             <div class="level-start">
                 <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/07/04/以太坊C-源码解析（七）交易/#more">阅读更多</a>
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/以太坊-C-源码/">以太坊 C++ 源码</a>
                 </div>
             </div>
         </div>
+        
         
         
     </div>
@@ -327,342 +213,74 @@
 
 
 
-
-
-
-
-
-    <div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-07-04T03:35:17.000Z">2019-07-04</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    8 分钟 读完 (大约 1128 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+<div class="card">
+    <div class="card-content">
+        <h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3>
+        <div class="buttons is-centered">
             
-                <a class="has-link-black-ter" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-6/">以太坊C++源码解析（五）区块链同步(6)</a>
-            
-        </h1>
-        <div class="content">
-            <p>除了上面的同步形式外，区块链节点之间还存在另外两种特殊形式的同步，一种是交易同步，也就是当某个节点完成一笔交易后，需要向其他节点广播这个交易，另一种是矿工成功挖到一个区块，也要向其他节点广播这个新的区块。我们来看看这两种同步是怎么进行的。</p>
+                
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>支付宝</span>
+    <div class="qrcode"><img src="/images/Allipay.jpg" alt="支付宝"></div>
+</a>
+
+                
+                
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>微信</span>
+    <div class="qrcode"><img src="/images/WeChat.png" alt="微信"></div>
+</a>
+
+                
+                <!-- Visit https://www.paypal.com/donate/buttons/ to get your donate button -->
+
+<a class="button is-warning donate" onclick="document.getElementById(&#39;paypal-donate-form&#39;).submit()">
+    <span class="icon is-small">
+        <i class="fab fa-paypal"></i>
+    </span>
+    <span>Paypal</span>
+</a>
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" id="paypal-donate-form">
+    <input type="hidden" name="cmd" value="_donations">
+    <input type="hidden" name="business" value="xingkong2000cn@gmail.com">
+    <input type="hidden" name="currency_code" value="USD">
+</form>
+
+                
         </div>
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-6/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
     </div>
 </div>
 
 
 
-
-
-
-
-
-    <div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-07-04T03:30:31.000Z">2019-07-04</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    6 分钟 读完 (大约 875 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-5/">以太坊C++源码解析（五）区块链同步(5)</a>
-            
-        </h1>
-        <div class="content">
-            <h1 id="onPeerBlockBodies"><a href="#onPeerBlockBodies" class="headerlink" title="onPeerBlockBodies()"></a>onPeerBlockBodies()</h1><p><code>BlockChainSync::requestBlocks()</code>请求区块体后，如果对方有这些区块就会把数据返回回来，本节我们来看看接收区块体数据的处理。</p>
-        </div>
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-5/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-    <div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-07-04T03:27:48.000Z">2019-07-04</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    11 分钟 读完 (大约 1685 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-4/">以太坊C++源码解析（五）区块链同步(4)</a>
-            
-        </h1>
-        <div class="content">
-            <p>继续上一节的内容，收到其他peer发过来的区块头之后，流程要怎么走了呢？还记得上一节<code>BlockChainSync::onPeerBlockHeaders()</code>函数的末尾是<code>collectBlocks()</code>和<code>continueSync()</code>两个函数吗？<code>collectBlocks()</code>由于没有可合并的区块，我们留到后面去讲，而<code>continueSync()</code>会调用<code>syncPeer()</code>这个函数，这次由于<code>m_state</code>状态已经是<code>SyncState::Blocks</code>，因此最终将会调用<code>BlockChainSync::requestBlocks()</code>函数。</p>
-        </div>
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-4/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-    <div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-07-04T03:10:12.000Z">2019-07-04</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    9 分钟 读完 (大约 1298 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-3/">以太坊C++源码解析（五）区块链同步(3)</a>
-            
-        </h1>
-        <div class="content">
-            <p>经过前面的铺垫，现在我们可以来看看<code>BlockChainSync::onPeerBlockHeaders()</code>这个函数的实现了，这个函数是<code>EthereumPeer</code>接收到<code>BlockHeadersPacket</code>包时被调用的，用来处理接收到的区块头。<br>这个函数有点长，还是一段一段来看吧。</p>
-        </div>
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-3/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-    <div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-07-04T03:07:32.000Z">2019-07-04</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    11 分钟 读完 (大约 1579 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-2/">以太坊C++源码解析（五）区块链同步(2)</a>
-            
-        </h1>
-        <div class="content">
-            <p>区块链同步的核心类是<code>BlockChainSync</code>，在继续深入了解同步流程之前，我们还是先来了解一下这个类有哪些重要成员吧。</p>
-        </div>
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-2/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-    <div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-07-04T03:03:31.000Z">2019-07-04</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    8 分钟 读完 (大约 1142 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2019/07/04/以太坊C-源码解析（六）以太坊The-DAO分叉/">以太坊C++源码解析（六）以太坊The DAO分叉</a>
-            
-        </h1>
-        <div class="content">
-            <p>刚写了一篇区块链同步的文章，发现里面有一些DAO分叉的代码绕不过去，需要专门写一篇来简单介绍一下这次以太坊历史上著名的分叉事件。</p>
-        </div>
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/07/04/以太坊C-源码解析（六）以太坊The-DAO分叉/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-
-    
 <div class="card card-transparent">
-    <nav class="pagination is-centered" role="navigation" aria-label="pagination">
-        <div class="pagination-previous is-invisible is-hidden-mobile">
-            <a class="is-flex-grow has-text-black-ter" href="/page/0/">上一页</a>
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/07/04/以太坊C-源码解析（八）交易队列（一）/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">以太坊C++源码解析（八）交易队列（一）</span>
+            </a>
         </div>
-        <div class="pagination-next">
-            <a class="is-flex-grow has-text-black-ter" href="/page/2/">下一页</a>
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-6/">
+                <span class="level-item">以太坊C++源码解析（五）区块链同步(6)</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
         </div>
-        <ul class="pagination-list is-hidden-mobile">
-            
-            <li><a class="pagination-link is-current" href="/">1</a></li>
-            
-            <li><a class="pagination-link has-text-black-ter" href="/page/2/">2</a></li>
-            
-        </ul>
-    </nav>
+        
+    </div>
 </div>
+
+
 </div>
                 
 
@@ -911,7 +529,7 @@
             <div class="level-start has-text-centered-mobile">
                 <a class="footer-logo is-block has-mb-6" href="/">
                 
-                    <img src="/images/logo.svg" alt="星空工作室" height="28">
+                    <img src="/images/logo.svg" alt="以太坊C++源码解析（七）交易" height="28">
                 
                 </a>
                 <p class="is-size-7">

@@ -2,24 +2,24 @@
 <html lang="zh">
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-<title>以太坊C++源码解析（一）Worker类 - 星空工作室</title>
+<title>以太坊C++源码解析（六）以太坊The DAO分叉 - 星空工作室</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-    <meta name="description" content="在ethereum项目中Worker类是许多类的基类，子类们继承Worker类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说Worker类是一份公用代码类，那么是什么代码这么重要呢？">
+    <meta name="description" content="刚写了一篇区块链同步的文章，发现里面有一些DAO分叉的代码绕不过去，需要专门写一篇来简单介绍一下这次以太坊历史上著名的分叉事件。">
 <meta name="keywords" content="以太坊 C++ 源码">
 <meta property="og:type" content="article">
-<meta property="og:title" content="以太坊C++源码解析（一）Worker类">
-<meta property="og:url" content="http://yoursite.com/2019/06/18/以太坊C-源码解析（一）Worker类/index.html">
+<meta property="og:title" content="以太坊C++源码解析（六）以太坊The DAO分叉">
+<meta property="og:url" content="http://yoursite.com/2019/07/04/以太坊C-源码解析（六）以太坊The-DAO分叉/index.html">
 <meta property="og:site_name" content="星空工作室">
-<meta property="og:description" content="在ethereum项目中Worker类是许多类的基类，子类们继承Worker类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说Worker类是一份公用代码类，那么是什么代码这么重要呢？">
+<meta property="og:description" content="刚写了一篇区块链同步的文章，发现里面有一些DAO分叉的代码绕不过去，需要专门写一篇来简单介绍一下这次以太坊历史上著名的分叉事件。">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/og_image.png">
-<meta property="og:updated_time" content="2019-07-02T03:58:54.000Z">
+<meta property="og:updated_time" content="2019-07-04T03:05:15.852Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="以太坊C++源码解析（一）Worker类">
-<meta name="twitter:description" content="在ethereum项目中Worker类是许多类的基类，子类们继承Worker类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说Worker类是一份公用代码类，那么是什么代码这么重要呢？">
+<meta name="twitter:title" content="以太坊C++源码解析（六）以太坊The DAO分叉">
+<meta name="twitter:description" content="刚写了一篇区块链同步的文章，发现里面有一些DAO分叉的代码绕不过去，需要专门写一篇来简单介绍一下这次以太坊历史上著名的分叉事件。">
 <meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
 
 
@@ -94,7 +94,7 @@
         <div class="navbar-brand is-flex-center">
             <a class="navbar-item navbar-logo" href="/">
             
-                <img src="/images/logo.svg" alt="以太坊C++源码解析（一）Worker类" height="28">
+                <img src="/images/logo.svg" alt="以太坊C++源码解析（六）以太坊The DAO分叉" height="28">
             
             </a>
         </div>
@@ -134,7 +134,7 @@
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
             <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-06-18T03:42:19.000Z">2019-06-18</time>
+                <time class="level-item has-text-grey" datetime="2019-07-04T03:03:31.000Z">2019-07-04</time>
                 
                 <div class="level-item">
                 <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
@@ -144,7 +144,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    3 分钟 读完 (大约 471 个字)
+                    8 分钟 读完 (大约 1142 个字)
                 </span>
                 
                 
@@ -153,28 +153,51 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                以太坊C++源码解析（一）Worker类
+                以太坊C++源码解析（六）以太坊The DAO分叉
             
         </h1>
         <div class="content">
-            <p>在ethereum项目中<code>Worker</code>类是许多类的基类，子类们继承<code>Worker</code>类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说<code>Worker</code>类是一份公用代码类，那么是什么代码这么重要呢？</p>
+            <p>刚写了一篇区块链同步的文章，发现里面有一些DAO分叉的代码绕不过去，需要专门写一篇来简单介绍一下这次以太坊历史上著名的分叉事件。</p>
 <a id="more"></a>
-<p>在Worker类中我们直接来看其成员，可以看到有两个重要的成员变量：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">unique_ptr</span>&lt;<span class="hljs-built_in">std</span>::thread&gt; m_work;</span><br><span class="line"><span class="hljs-keyword">mutable</span> <span class="hljs-built_in">std</span>::condition_variable m_state_notifier;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>区块链分叉分为硬分叉和软分叉，区别请自行谷歌，The DAO分叉是一次硬分叉。</p>
+</blockquote>
+<p>The DAO是一个存在于以太坊区块链智能合约中的去中心化组织，这个组织于2016年4月30日起通过合约发起众筹，短短28天就筹集了相当于1.5亿美金的以太币。然而很不幸的是合约本身存在漏洞，更不幸的是被一个(多个?)聪明的黑客利用了，6月17日他(他们?)从中盗走了价值5000万美元的以太币。<br>巨大的损失让The DAO和全球投资者难以承受，以V神为代表的7人组决定采取反制措施，当初采取软分叉还是硬分叉在社区是有争议的，但是经过各种厉害权衡，硬分叉的方案被确定了下来。</p>
+<blockquote>
+<p>这次分叉本身也存在很大争议，相当于网游中的回档，直接宣布黑客所拥有的以太币是无效的，简单粗暴，但是违反了区块链上已打包交易任何人无法篡改的原则，人为地干预区块链也违背了去中心化的精神。因此分叉后以太坊就此分裂，由V神和大多数人支持的一支叫以太坊(ETH)，另一只叫以太经典(ETC)。ETC由于缺乏官方的支持，处于弱势，但是还是有一批坚守区块链精神的人在维持。</p>
+</blockquote>
+<p>这次硬分叉的方案是这样的：</p>
+<ul>
+<li>分叉的节点位于<strong>1920000</strong>高度的区块，该区块的<code>extra data</code>设为<code>dao-hard-fork (Hex:0x64616f2d686172642d666f726b)</code>，作为ETH和ETC区分的标志。</li>
+<li>将DAO账户的所有余额全部转到一个退款合约账户上。</li>
+</ul>
+<p>在1920000块上总计有58个DAO和子DAO合约账户的共12,001,961.845205763407115004 ETH被转到了退款合约账户上。<br>这些转账没有在块交易中体现，而是直接被写入源码中！<br>你可以在Etherscan上找到这个区块：<a href="https://etherscan.io/block/1920000" target="_blank" rel="noopener">区块1920000</a></p>
+<p>下面我们来看看这个分叉在源码中的体现：</p>
+<ul>
+<li>首先是记录了分叉点。<code>libethashseal\genesis\mainNetwork.cpp</code>里记录了<code>mainnet</code>的一些参数，其中就有<code>&quot;daoHardforkBlock&quot;: &quot;0x1d4c00&quot;</code>，<code>0x1d4c00</code>就是1920000！<code>libethashseal\genesis</code>目录下的<code>ropsten.cpp</code>里记录了ropsten测试链的参数，可以看到<code>ropsten</code>的<code>daoHardforkBlock</code>值为0，表示没有分叉。</li>
+<li>在<code>Block::performIrregularModifications()</code>函数中完成了转账操作。</li>
+</ul>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> Block::performIrregularModifications()</span><br><span class="line">&#123;</span><br><span class="line">    u256 <span class="hljs-keyword">const</span>&amp; daoHardfork = m_sealEngine-&gt;chainParams().daoHardforkBlock;</span><br><span class="line">    <span class="hljs-keyword">if</span> (daoHardfork != <span class="hljs-number">0</span> &amp;&amp; info().number() == daoHardfork)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-function">Address <span class="hljs-title">recipient</span><span class="hljs-params">(<span class="hljs-string">"0xbf4ed7b27f1d666546e30d74d50d173d20bca754"</span>)</span></span>;</span><br><span class="line">        Addresses allDAOs = childDaos();</span><br><span class="line">        <span class="hljs-keyword">for</span> (Address <span class="hljs-keyword">const</span>&amp; dao: allDAOs)</span><br><span class="line">            m_state.transferBalance(dao, recipient, m_state.balance(dao));</span><br><span class="line">        m_state.commit(State::CommitBehaviour::KeepEmptyAccounts);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>看到这里经验丰富的程序员们应该就能想到这个是经典的生产消费者队列的C++11实现方式，还不了解生产消费者队列的同学可以暂停一下，先搜索一下相关知识再继续。<br>然后我们再来看两个重要的成员函数：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">startWorking</span><span class="hljs-params">()</span></span>;</span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">stopWorking</span><span class="hljs-params">()</span></span>;</span><br></pre></td></tr></table></figure>
+<p>这段代码判断如果当前块高度为1920000时，遍历所有的DAO账号，将所有余额转到<code>recipient</code>中，<code>recipient</code>就是那个退款合约账户。<br>分叉影响也波及到了区块链同步模块：</p>
+<ul>
+<li>收到peer的StatusPacket包后，需要进行一个DAO challenge。<br><code>BlockChainSync::onPeerStatus()</code>中有如下代码：</li>
+</ul>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">// Before starting to exchange the data with the node, let's verify that it's on our chain</span></span><br><span class="line"><span class="hljs-keyword">if</span> (!requestDaoForkBlockHeader(_peer))</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-comment">// DAO challenge not needed</span></span><br><span class="line">    syncPeer(_peer, <span class="hljs-literal">false</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>这个其实就是启动和停止<code>m_work</code>这个线程了。<br>在<code>startWorking()</code>函数内部我们能看到线程的初始化过程，线程函数体用的是lambda表达式，其中最重要的一段我列出来：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">try</span></span><br><span class="line">&#123;</span><br><span class="line">	startedWorking();</span><br><span class="line">	workLoop();</span><br><span class="line">	doneWorking();</span><br><span class="line">&#125;</span><br><span class="line"><span class="hljs-keyword">catch</span> (<span class="hljs-built_in">std</span>::exception <span class="hljs-keyword">const</span>&amp; _e)</span><br><span class="line">&#123;</span><br><span class="line">	cwarn &lt;&lt; <span class="hljs-string">"Exception thrown in Worker thread: "</span> &lt;&lt; _e.what();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>BlockChainSync::requestDaoForkBlockHeader()</code>函数实现为：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">bool</span> BlockChainSync::requestDaoForkBlockHeader(<span class="hljs-built_in">std</span>::<span class="hljs-built_in">shared_ptr</span>&lt;EthereumPeer&gt; _peer)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-comment">// DAO challenge</span></span><br><span class="line">    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">const</span> daoHardfork = <span class="hljs-keyword">static_cast</span>&lt;<span class="hljs-keyword">unsigned</span>&gt;(host().chain().sealEngine()-&gt;chainParams().daoHardforkBlock);</span><br><span class="line">    <span class="hljs-keyword">if</span> (daoHardfork == <span class="hljs-number">0</span>)</span><br><span class="line">        <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><br><span class="line"></span><br><span class="line">    m_daoChallengedPeers.insert(_peer);</span><br><span class="line">    _peer-&gt;requestBlockHeaders(daoHardfork, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-literal">false</span>);</span><br><span class="line">    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>这个线程最重要的是执行了这三个操作，<code>startedWorking()</code>用于<code>workLoop()</code>前的准备工作,<code>doneWorking()</code>用于<code>workLoop()</code>后的收尾工资，<code>workLoop()</code>内部用一个循环调用了<code>doWork()</code>来做实际的工作：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> Worker::workLoop()</span><br><span class="line">&#123;</span><br><span class="line">	<span class="hljs-keyword">while</span> (m_state == WorkerState::Started)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="hljs-keyword">if</span> (m_idleWaitMs)</span><br><span class="line">			this_thread::sleep_for(chrono::milliseconds(m_idleWaitMs));</span><br><span class="line">		doWork();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于mainnet来说，<code>daoHardfork</code>为1920000，因此它首先需要向该peer请求这个分叉块头。</p>
+<ul>
+<li>收到对方的<code>BlockHeadersPacket</code>包后还需要校验：</li>
+</ul>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">if</span> (m_daoChallengedPeers.find(_peer) != m_daoChallengedPeers.end())</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (verifyDaoChallengeResponse(_r))</span><br><span class="line">        syncPeer(_peer, <span class="hljs-literal">false</span>);</span><br><span class="line">    <span class="hljs-keyword">else</span></span><br><span class="line">        _peer-&gt;disable(<span class="hljs-string">"Peer from another fork."</span>);</span><br><span class="line"></span><br><span class="line">    m_daoChallengedPeers.erase(_peer);</span><br><span class="line">    <span class="hljs-keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>我们再来看这几个函数的定义：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">startedWorking</span><span class="hljs-params">()</span> </span>&#123;&#125;</span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doWork</span><span class="hljs-params">()</span> </span>&#123;&#125;</span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">workLoop</span><span class="hljs-params">()</span></span>;</span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doneWorking</span><span class="hljs-params">()</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>校验的代码位于<code>BlockChainSync::verifyDaoChallengeResponse()</code>函数中：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">bool</span> BlockChainSync::verifyDaoChallengeResponse(RLP <span class="hljs-keyword">const</span>&amp; _r)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (_r.itemCount() != <span class="hljs-number">1</span>)</span><br><span class="line">        <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function">BlockHeader <span class="hljs-title">info</span><span class="hljs-params">(_r[<span class="hljs-number">0</span>].data(), HeaderData)</span></span>;</span><br><span class="line">    <span class="hljs-keyword">return</span> info.number() == host().chain().sealEngine()-&gt;chainParams().daoHardforkBlock &amp;&amp;</span><br><span class="line">        info.extraData() == fromHex(<span class="hljs-string">"0x64616f2d686172642d666f726b"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>可以看到除了<code>workLoop()</code>有一个默认的实现外，其他函数体都是空的，子类们通过重新实现这几个函数来实现具体的功能，后面我们会看到这些子类们是怎么做的。</p>
+<p>可以看到校验的方法很简单，就是看块头的<code>extraData</code>里记录的是不是<code>dao-hard-fork (Hex:0x64616f2d686172642d666f726b)</code>，如果是则说明是ETH，可以继续同步，否则是ETC，禁用该peer。<br>节点通过DAO challenge后就可以按正常流程同步了。</p>
 
         </div>
         
@@ -244,12 +267,19 @@
     <div class="level post-navigation is-flex-wrap is-mobile">
         
         <div class="level-start">
-            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/06/21/以太坊C-源码解析（二）大数据类型/">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-2/">
                 <i class="level-item fas fa-chevron-left"></i>
-                <span class="level-item">以太坊C++源码解析（二）大数据类型</span>
+                <span class="level-item">以太坊C++源码解析（五）区块链同步(2)</span>
             </a>
         </div>
         
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-1/">
+                <span class="level-item">以太坊C++源码解析（五）区块链同步(1)</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
         
     </div>
 </div>
@@ -503,7 +533,7 @@
             <div class="level-start has-text-centered-mobile">
                 <a class="footer-logo is-block has-mb-6" href="/">
                 
-                    <img src="/images/logo.svg" alt="以太坊C++源码解析（一）Worker类" height="28">
+                    <img src="/images/logo.svg" alt="以太坊C++源码解析（六）以太坊The DAO分叉" height="28">
                 
                 </a>
                 <p class="is-size-7">

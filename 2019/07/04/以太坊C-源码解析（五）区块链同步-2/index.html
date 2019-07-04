@@ -2,24 +2,24 @@
 <html lang="zh">
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-<title>以太坊C++源码解析（一）Worker类 - 星空工作室</title>
+<title>以太坊C++源码解析（五）区块链同步(2) - 星空工作室</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-    <meta name="description" content="在ethereum项目中Worker类是许多类的基类，子类们继承Worker类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说Worker类是一份公用代码类，那么是什么代码这么重要呢？">
+    <meta name="description" content="区块链同步的核心类是BlockChainSync，在继续深入了解同步流程之前，我们还是先来了解一下这个类有哪些重要成员吧。">
 <meta name="keywords" content="以太坊 C++ 源码">
 <meta property="og:type" content="article">
-<meta property="og:title" content="以太坊C++源码解析（一）Worker类">
-<meta property="og:url" content="http://yoursite.com/2019/06/18/以太坊C-源码解析（一）Worker类/index.html">
+<meta property="og:title" content="以太坊C++源码解析（五）区块链同步(2)">
+<meta property="og:url" content="http://yoursite.com/2019/07/04/以太坊C-源码解析（五）区块链同步-2/index.html">
 <meta property="og:site_name" content="星空工作室">
-<meta property="og:description" content="在ethereum项目中Worker类是许多类的基类，子类们继承Worker类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说Worker类是一份公用代码类，那么是什么代码这么重要呢？">
+<meta property="og:description" content="区块链同步的核心类是BlockChainSync，在继续深入了解同步流程之前，我们还是先来了解一下这个类有哪些重要成员吧。">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/og_image.png">
-<meta property="og:updated_time" content="2019-07-02T03:58:54.000Z">
+<meta property="og:updated_time" content="2019-07-04T03:24:39.563Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="以太坊C++源码解析（一）Worker类">
-<meta name="twitter:description" content="在ethereum项目中Worker类是许多类的基类，子类们继承Worker类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说Worker类是一份公用代码类，那么是什么代码这么重要呢？">
+<meta name="twitter:title" content="以太坊C++源码解析（五）区块链同步(2)">
+<meta name="twitter:description" content="区块链同步的核心类是BlockChainSync，在继续深入了解同步流程之前，我们还是先来了解一下这个类有哪些重要成员吧。">
 <meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
 
 
@@ -94,7 +94,7 @@
         <div class="navbar-brand is-flex-center">
             <a class="navbar-item navbar-logo" href="/">
             
-                <img src="/images/logo.svg" alt="以太坊C++源码解析（一）Worker类" height="28">
+                <img src="/images/logo.svg" alt="以太坊C++源码解析（五）区块链同步(2)" height="28">
             
             </a>
         </div>
@@ -134,7 +134,7 @@
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
             <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-06-18T03:42:19.000Z">2019-06-18</time>
+                <time class="level-item has-text-grey" datetime="2019-07-04T03:07:32.000Z">2019-07-04</time>
                 
                 <div class="level-item">
                 <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
@@ -144,7 +144,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    3 分钟 读完 (大约 471 个字)
+                    11 分钟 读完 (大约 1579 个字)
                 </span>
                 
                 
@@ -153,28 +153,48 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                以太坊C++源码解析（一）Worker类
+                以太坊C++源码解析（五）区块链同步(2)
             
         </h1>
         <div class="content">
-            <p>在ethereum项目中<code>Worker</code>类是许多类的基类，子类们继承<code>Worker</code>类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说<code>Worker</code>类是一份公用代码类，那么是什么代码这么重要呢？</p>
+            <p>区块链同步的核心类是<code>BlockChainSync</code>，在继续深入了解同步流程之前，我们还是先来了解一下这个类有哪些重要成员吧。</p>
 <a id="more"></a>
-<p>在Worker类中我们直接来看其成员，可以看到有两个重要的成员变量：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">unique_ptr</span>&lt;<span class="hljs-built_in">std</span>::thread&gt; m_work;</span><br><span class="line"><span class="hljs-keyword">mutable</span> <span class="hljs-built_in">std</span>::condition_variable m_state_notifier;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>m_chainStartBlock &amp; m_startingBlock &amp; m_highestBlock</code><br>这三个分别表示链起始块号，一般是0；需要同步的起始块号；当前所知的最大块号</li>
+<li><code>m_lastImportedBlock &amp; m_lastImportedBlockHash</code><br>这两个表示当前同步的最新块的块号和块hash值，在同步中我们需要知道当前同步到多少块了就是看<code>m_lastImportedBlock</code>这个值，这是一个重要指标。</li>
+<li><code>m_downloadingHeaders &amp; m_downloadingBodies &amp; m_headerSyncPeers &amp; m_bodySyncPeers</code><br>这几个定义稍微复杂一些：<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">unordered_set</span>&lt;<span class="hljs-keyword">unsigned</span>&gt; m_downloadingHeaders;		<span class="hljs-comment">///&lt; Set of block body numbers being downloaded</span></span><br><span class="line"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">unordered_set</span>&lt;<span class="hljs-keyword">unsigned</span>&gt; m_downloadingBodies;		<span class="hljs-comment">///&lt; Set of block header numbers being downloaded</span></span><br><span class="line"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">map</span>&lt;<span class="hljs-built_in">std</span>::weak_ptr&lt;EthereumPeer&gt;, <span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-keyword">unsigned</span>&gt;, <span class="hljs-built_in">std</span>::owner_less&lt;<span class="hljs-built_in">std</span>::weak_ptr&lt;EthereumPeer&gt;&gt;&gt; m_headerSyncPeers; <span class="hljs-comment">///&lt; Peers to m_downloadingSubchain number map</span></span><br><span class="line"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">map</span>&lt;<span class="hljs-built_in">std</span>::weak_ptr&lt;EthereumPeer&gt;, <span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-keyword">unsigned</span>&gt;, <span class="hljs-built_in">std</span>::owner_less&lt;<span class="hljs-built_in">std</span>::weak_ptr&lt;EthereumPeer&gt;&gt;&gt; m_bodySyncPeers; <span class="hljs-comment">///&lt; Peers to m_downloadingSubchain number map</span></span><br></pre></td></tr></table></figure>
 
-<p>看到这里经验丰富的程序员们应该就能想到这个是经典的生产消费者队列的C++11实现方式，还不了解生产消费者队列的同学可以暂停一下，先搜索一下相关知识再继续。<br>然后我们再来看两个重要的成员函数：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">startWorking</span><span class="hljs-params">()</span></span>;</span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">stopWorking</span><span class="hljs-params">()</span></span>;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>其中<code>m_downloadingHeaders</code>记录当前正在同步的块头对应的块号；<code>m_downloadingBodies</code>记录单曲正在同步的块体对应的块号；<code>m_headerSyncPeers</code>在<code>m_downloadingHeaders</code>的基础上还记录了peer信息；<code>m_bodySyncPeers</code>在<code>m_downloadingBodies</code>的基础上记录了peer信息。</p>
+<blockquote>
+<p>注意到这里有个模板<code>std::owner_less&lt;&gt;</code>，这个模板是用来表明如何对<code>std::weak_ptr&lt;EthereumPeer&gt;</code>进行排序的，这里有一个<code>owner-base</code>和<code>value-base</code>的概念，在一般情况下<code>owner-base</code>和<code>value-base</code>是相同的，但是在<code>std::shared_ptr</code>和<code>std::weak_ptr</code>使用<br><code>aliasing constructor(别名构造函数)</code>时这两者不同，需要区分。<br>推荐两篇文件，讲得比较详细：<br><a href="https://www.tutorialspoint.com/cpp_standard_library/cpp_owner_less.htm" target="_blank" rel="noopener">C++ Memory Library - owner_less</a><br><a href="https://stackoverflow.com/questions/27109379/what-is-shared-ptrs-aliasing-constructor-for" target="_blank" rel="noopener">What is shared_ptr’s aliasing constructor for?</a></p>
+</blockquote>
+<p>那么同步中记录这四个值有什么用呢？在这里是用来做校验的。<br>因为<code>BlockChainSync</code>类从<code>HasInvariants</code>类继承而来，因此继承了一个接口：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">bool</span> <span class="hljs-title">invariants</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>= <span class="hljs-number">0</span>;</span><br></pre></td></tr></table></figure>
 
-<p>这个其实就是启动和停止<code>m_work</code>这个线程了。<br>在<code>startWorking()</code>函数内部我们能看到线程的初始化过程，线程函数体用的是lambda表达式，其中最重要的一段我列出来：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">try</span></span><br><span class="line">&#123;</span><br><span class="line">	startedWorking();</span><br><span class="line">	workLoop();</span><br><span class="line">	doneWorking();</span><br><span class="line">&#125;</span><br><span class="line"><span class="hljs-keyword">catch</span> (<span class="hljs-built_in">std</span>::exception <span class="hljs-keyword">const</span>&amp; _e)</span><br><span class="line">&#123;</span><br><span class="line">	cwarn &lt;&lt; <span class="hljs-string">"Exception thrown in Worker thread: "</span> &lt;&lt; _e.what();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以在<code>BlockChainSync::invariants()</code>中找到答案：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">bool</span> BlockChainSync::invariants() <span class="hljs-keyword">const</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (!isSyncing() &amp;&amp; !m_headers.empty())</span><br><span class="line">        BOOST_THROW_EXCEPTION(FailedInvariant() &lt;&lt; errinfo_comment(<span class="hljs-string">"Got headers while not syncing"</span>));</span><br><span class="line">    <span class="hljs-keyword">if</span> (!isSyncing() &amp;&amp; !m_bodies.empty())</span><br><span class="line">        BOOST_THROW_EXCEPTION(FailedInvariant() &lt;&lt; errinfo_comment(<span class="hljs-string">"Got bodies while not syncing"</span>));</span><br><span class="line">    <span class="hljs-keyword">if</span> (isSyncing() &amp;&amp; m_host.chain().number() &gt; <span class="hljs-number">0</span> &amp;&amp; m_haveCommonHeader &amp;&amp; m_lastImportedBlock == <span class="hljs-number">0</span>)</span><br><span class="line">        BOOST_THROW_EXCEPTION(FailedInvariant() &lt;&lt; errinfo_comment(<span class="hljs-string">"Common block not found"</span>));</span><br><span class="line">    <span class="hljs-keyword">if</span> (isSyncing() &amp;&amp; !m_headers.empty() &amp;&amp;  m_lastImportedBlock &gt;= m_headers.begin()-&gt;first)</span><br><span class="line">        BOOST_THROW_EXCEPTION(FailedInvariant() &lt;&lt; errinfo_comment(<span class="hljs-string">"Header is too old"</span>));</span><br><span class="line">    <span class="hljs-keyword">if</span> (m_headerSyncPeers.empty() != m_downloadingHeaders.empty())</span><br><span class="line">        BOOST_THROW_EXCEPTION(FailedInvariant() &lt;&lt; errinfo_comment(<span class="hljs-string">"Header download map mismatch"</span>));</span><br><span class="line">    <span class="hljs-keyword">if</span> (m_bodySyncPeers.empty() != m_downloadingBodies.empty() &amp;&amp; m_downloadingBodies.size() &lt;= m_headerIdToNumber.size())</span><br><span class="line">        BOOST_THROW_EXCEPTION(FailedInvariant() &lt;&lt; errinfo_comment(<span class="hljs-string">"Body download map mismatch"</span>));</span><br><span class="line">    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>这个线程最重要的是执行了这三个操作，<code>startedWorking()</code>用于<code>workLoop()</code>前的准备工作,<code>doneWorking()</code>用于<code>workLoop()</code>后的收尾工资，<code>workLoop()</code>内部用一个循环调用了<code>doWork()</code>来做实际的工作：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> Worker::workLoop()</span><br><span class="line">&#123;</span><br><span class="line">	<span class="hljs-keyword">while</span> (m_state == WorkerState::Started)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="hljs-keyword">if</span> (m_idleWaitMs)</span><br><span class="line">			this_thread::sleep_for(chrono::milliseconds(m_idleWaitMs));</span><br><span class="line">		doWork();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那么在哪里调用这个函数呢？在<code>InvariantChecker::checkInvariants()</code>函数里：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> InvariantChecker::checkInvariants(HasInvariants <span class="hljs-keyword">const</span>* _this, <span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* _fn, <span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* _file, <span class="hljs-keyword">int</span> _line, <span class="hljs-keyword">bool</span> _pre)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (!_this-&gt;invariants())</span><br><span class="line">    &#123;</span><br><span class="line">        cwarn &lt;&lt; (_pre ? <span class="hljs-string">"Pre"</span> : <span class="hljs-string">"Post"</span>) &lt;&lt; <span class="hljs-string">"invariant failed in"</span> &lt;&lt; _fn &lt;&lt; <span class="hljs-string">"at"</span> &lt;&lt; _file &lt;&lt; <span class="hljs-string">":"</span> &lt;&lt; _line;</span><br><span class="line">        ::boost::exception_detail::throw_exception_(FailedInvariant(), _fn, _file, _line);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>我们再来看这几个函数的定义：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">startedWorking</span><span class="hljs-params">()</span> </span>&#123;&#125;</span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doWork</span><span class="hljs-params">()</span> </span>&#123;&#125;</span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">workLoop</span><span class="hljs-params">()</span></span>;</span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doneWorking</span><span class="hljs-params">()</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>而这个函数被定义成了两个宏：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-meta">#<span class="hljs-meta-keyword">if</span> ETH_DEBUG</span></span><br><span class="line"><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> DEV_INVARIANT_CHECK ::dev::InvariantChecker __dev_invariantCheck(this, BOOST_CURRENT_FUNCTION, __FILE__, __LINE__)</span></span><br><span class="line"><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> DEV_INVARIANT_CHECK_HERE ::dev::InvariantChecker::checkInvariants(this, BOOST_CURRENT_FUNCTION, __FILE__, __LINE__, true)</span></span><br><span class="line"><span class="hljs-meta">#<span class="hljs-meta-keyword">else</span></span></span><br><span class="line"><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> DEV_INVARIANT_CHECK (void)0;</span></span><br><span class="line"><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> DEV_INVARIANT_CHECK_HERE (void)0;</span></span><br><span class="line"><span class="hljs-meta">#<span class="hljs-meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
 
-<p>可以看到除了<code>workLoop()</code>有一个默认的实现外，其他函数体都是空的，子类们通过重新实现这几个函数来实现具体的功能，后面我们会看到这些子类们是怎么做的。</p>
+<p><code>DEV_INVARIANT_CHECK</code>和<code>DEV_INVARIANT_CHECK_HERE</code>这两个宏在代码中多次调用，有兴趣可以去看看源码。</p>
+<blockquote>
+<p>除了<code>BlockChainSync</code>类之外，还有一个重要类<code>BlockQueue</code>类也是从<code>HasInvariants</code>类继承而来，因而也具有check的能力。</p>
+</blockquote>
+<ul>
+<li><code>m_headers &amp; m_bodies</code><br>这两个是下载的块头和块体的缓冲区，当块头和块体不属于同一个块，因而无法合并时，被暂存在这里。<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">map</span>&lt;<span class="hljs-keyword">unsigned</span>, <span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;Header&gt;&gt; m_headers;	    <span class="hljs-comment">///&lt; Downloaded headers</span></span><br><span class="line"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">map</span>&lt;<span class="hljs-keyword">unsigned</span>, <span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;bytes&gt;&gt; m_bodies;	    <span class="hljs-comment">///&lt; Downloaded block bodies</span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>这里使用了<code>std::map</code>，key表示<code>m_headers</code>或<code>m_bodies</code>中连续段最低块的块号，value表示<code>m_headers</code>或<code>m_bodies</code>中存在的数据。每个<code>std::vector</code>中保存一个连续段的数据。以<code>m_headers</code>为例，假如有块5，6，7，10，13，15，16，那么在<code>m_headers</code>中存储为：<strong>{ {5, {块5，块6，块7} }, {10, {块10} }, {13, {块13} }, {15, {块15，块16} } }</strong>，其中5，6，7是一个连续段，存为一个pair，key为5，value为<code>std::vector&lt;Header&gt;{块5，块6，块7}</code>，块10为一个单独不连续块，那么存为一个pair，key为10，value为<code>std::vector&lt;Header&gt;{块10}</code>，以此类推，<code>m_bodies</code>也是一样。为了在这种数据结构中方便查找，插入和删除数据，还专门定义了专有方法，比如<code>haveItem()</code>，<code>findItem()</code>，<code>removeItem()</code>，<code>removeAllStartingWith()</code>和<code>mergeInto()</code>，有兴趣可以自己看下，能更深入理解这种数据结构的操作。<br><code>m_headers 和 m_bodies</code>构成了整个区块链同步的第一级缓存，存放了刚下载下来未经校验的分离的区块头和区块体。整个区块链同步的数据流程大致如下：<br><img src="https://i.loli.net/2019/07/04/5d1d70cd47d3710971.png" alt="区块链同步模型"></p>
+<ul>
+<li>m_haveCommonHeader<br>这是一个简简单单的布尔值，默认为false，但是却非常重要，它实际决定了同步块的起点，这里可能会有人问上面不是有个<code>m_lastImportedBlock</code>吗？难道不是每次都是从这里开始同步的吗？理论上是的，但是实际中同步区块链有个<strong>回退</strong>操作，开始时<code>m_haveCommonHeader</code>值为false，那么回退一个块，从<code>m_haveCommonHeader - 1</code>块开始同步，当<code>m_haveCommonHeader - 1</code>块头下载下来以后，和本地区块链或者<code>BlockQueue</code>中的<code>m_haveCommonHeader - 1</code>块做比较，如果是一样的，那么<code>m_haveCommonHeader</code>值设为true，证明我们之前下载的区块链和当前这个peer上下载的区块是同一条链上的，可以放心向后同步了。如果不一样，那么证明我们的区块链和peer上的区块不是在同一条链上（可能有分叉），这时候需要继续回退，下载<code>m_haveCommonHeader - 2</code>等等，直到<code>m_haveCommonHeader</code>值为true才算回退到头，这个也是区块链同步有时候会停滞的原因之一，尤其是在ropsten测试链中这种情况经常出现。除了开始同步时可能存在回退的情况，在导入块，也就是从一级缓存进入二级缓存BlockQueue时也会做检查，如果出错也可能导致回退。</li>
+</ul>
 
         </div>
         
@@ -244,12 +264,19 @@
     <div class="level post-navigation is-flex-wrap is-mobile">
         
         <div class="level-start">
-            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/06/21/以太坊C-源码解析（二）大数据类型/">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-3/">
                 <i class="level-item fas fa-chevron-left"></i>
-                <span class="level-item">以太坊C++源码解析（二）大数据类型</span>
+                <span class="level-item">以太坊C++源码解析（五）区块链同步(3)</span>
             </a>
         </div>
         
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/07/04/以太坊C-源码解析（六）以太坊The-DAO分叉/">
+                <span class="level-item">以太坊C++源码解析（六）以太坊The DAO分叉</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
         
     </div>
 </div>
@@ -503,7 +530,7 @@
             <div class="level-start has-text-centered-mobile">
                 <a class="footer-logo is-block has-mb-6" href="/">
                 
-                    <img src="/images/logo.svg" alt="以太坊C++源码解析（一）Worker类" height="28">
+                    <img src="/images/logo.svg" alt="以太坊C++源码解析（五）区块链同步(2)" height="28">
                 
                 </a>
                 <p class="is-size-7">

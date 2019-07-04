@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>以太坊C++源码解析（八）交易队列（二） - 星空工作室</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+    <meta name="description" content="交易队列的输入交易队列的输入有两个，分别是接收到其他节点的广播交易和自身节点提交的交易。">
+<meta name="keywords" content="以太坊 C++ 源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="以太坊C++源码解析（八）交易队列（二）">
+<meta property="og:url" content="http://yoursite.com/2019/07/04/以太坊C-源码解析（八）交易队列（二）/index.html">
+<meta property="og:site_name" content="星空工作室">
+<meta property="og:description" content="交易队列的输入交易队列的输入有两个，分别是接收到其他节点的广播交易和自身节点提交的交易。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/images/og_image.png">
+<meta property="og:updated_time" content="2019-07-04T03:44:50.004Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="以太坊C++源码解析（八）交易队列（二）">
+<meta name="twitter:description" content="交易队列的输入交易队列的输入有两个，分别是接收到其他节点的广播交易和自身节点提交的交易。">
+<meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
+
+
+
+
+
+
+
+<link rel="icon" href="/images/favicon.svg">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css">
+
+
+    
+    
+    
+    <style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+    
+
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+    
+
+    
+    
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+
+    
+    
+    
+    
+
+<link rel="stylesheet" href="/css/back-to-top.css">
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+<link rel="stylesheet" href="/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+    
+    
+    
+
+    
+    
+    
+
+
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="is-2-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/">
+            
+                <img src="/images/logo.svg" alt="以太坊C++源码解析（八）交易队列（二）" height="28">
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item" href="/">主页</a>
+                
+                <a class="navbar-item" href="/archives">存档</a>
+                
+                <a class="navbar-item" href="/categories">分类</a>
+                
+                <a class="navbar-item" href="/tags">标签</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                
+                
+                <a class="navbar-item search" title="搜索" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main"><div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-07-04T03:43:03.000Z">2019-07-04</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    7 分钟 读完 (大约 1106 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                以太坊C++源码解析（八）交易队列（二）
+            
+        </h1>
+        <div class="content">
+            <h1 id="交易队列的输入"><a href="#交易队列的输入" class="headerlink" title="交易队列的输入"></a>交易队列的输入</h1><p>交易队列的输入有两个，分别是接收到其他节点的广播交易和自身节点提交的交易。</p>
+<a id="more"></a>
+<p>分别来看这两种输入方式：</p>
+<ul>
+<li>接收广播交易<br>在前面区块链同步章节中提到过，接收到交易后会通过调用<code>TransactionQueue::enqueue()</code>来将新交易放入交易队列中，这个函数代码非常简单：<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> TransactionQueue::enqueue(RLP <span class="hljs-keyword">const</span>&amp; _data, h512 <span class="hljs-keyword">const</span>&amp; _nodeId)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">bool</span> queued = <span class="hljs-literal">false</span>;</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-function">Guard <span class="hljs-title">l</span><span class="hljs-params">(x_queue)</span></span>;</span><br><span class="line">        <span class="hljs-keyword">unsigned</span> itemCount = _data.itemCount();</span><br><span class="line">        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">unsigned</span> i = <span class="hljs-number">0</span>; i &lt; itemCount; ++i)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="hljs-keyword">if</span> (m_unverified.size() &gt;= c_maxVerificationQueueSize)</span><br><span class="line">            &#123;</span><br><span class="line">                LOG(m_logger) &lt;&lt; <span class="hljs-string">"Transaction verification queue is full. Dropping "</span></span><br><span class="line">                            &lt;&lt; itemCount - i &lt;&lt; <span class="hljs-string">" transactions"</span>;</span><br><span class="line">                <span class="hljs-keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            m_unverified.emplace_back(UnverifiedTransaction(_data[i].data(), _nodeId));</span><br><span class="line">            queued = <span class="hljs-literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">if</span> (queued)</span><br><span class="line">        m_queueReady.notify_all();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>只是将交易放入<code>m_unverified</code>中，然后通知校验线程来校验。<br>再来看校验线程：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> TransactionQueue::verifierBody()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">while</span> (!m_aborting)</span><br><span class="line">    &#123;</span><br><span class="line">        UnverifiedTransaction work;</span><br><span class="line"></span><br><span class="line">        &#123;</span><br><span class="line">            unique_lock&lt;Mutex&gt; l(x_queue);</span><br><span class="line">            m_queueReady.wait(l, [&amp;]()&#123; <span class="hljs-keyword">return</span> !m_unverified.empty() || m_aborting; &#125;);</span><br><span class="line">            <span class="hljs-keyword">if</span> (m_aborting)</span><br><span class="line">                <span class="hljs-keyword">return</span>;</span><br><span class="line">            work = move(m_unverified.front());</span><br><span class="line">            m_unverified.pop_front();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">try</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="hljs-function">Transaction <span class="hljs-title">t</span><span class="hljs-params">(work.transaction, CheckTransaction::Cheap)</span></span>; <span class="hljs-comment">//Signature will be checked later</span></span><br><span class="line">            ImportResult ir = <span class="hljs-keyword">import</span>(t);</span><br><span class="line">            m_onImport(ir, t.sha3(), work.nodeId);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="hljs-keyword">catch</span> (...)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="hljs-comment">// should not happen as exceptions are handled in import.</span></span><br><span class="line">            cwarn &lt;&lt; <span class="hljs-string">"Bad transaction:"</span> &lt;&lt; boost::current_exception_diagnostic_information();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里是一个简单的生产消费者队列，先将<code>UnverifiedTransaction</code>取出，然后调用<code>import()</code>函数进行校验。由于使用了线程，校验过程是异步的。</p>
+<ul>
+<li>自身提交交易<br>节点自身提交的交易与上面的交易不同，是同步的，也就是直接会调用<code>import()</code>函数来进行校验。<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">ImportResult TransactionQueue::<span class="hljs-keyword">import</span>(bytesConstRef _transactionRLP, IfDropped _ik)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">try</span></span><br><span class="line">    &#123;</span><br><span class="line">        Transaction t = Transaction(_transactionRLP, CheckTransaction::Everything);</span><br><span class="line">        <span class="hljs-keyword">return</span> <span class="hljs-keyword">import</span>(t, _ik);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">catch</span> (Exception <span class="hljs-keyword">const</span>&amp;)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-keyword">return</span> ImportResult::Malformed;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h1 id="交易的校验"><a href="#交易的校验" class="headerlink" title="交易的校验"></a>交易的校验</h1><p>我们来看这个校验的过程，也就是<code>TransactionQueue::import()</code>函数。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">ImportResult TransactionQueue::<span class="hljs-keyword">import</span>(Transaction <span class="hljs-keyword">const</span>&amp; _transaction, IfDropped _ik)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (_transaction.hasZeroSignature())</span><br><span class="line">        <span class="hljs-keyword">return</span> ImportResult::ZeroSignature;</span><br><span class="line">    <span class="hljs-comment">// Check if we already know this transaction.</span></span><br><span class="line">    h256 h = _transaction.sha3(WithSignature);</span><br><span class="line"></span><br><span class="line">    ImportResult ret;</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-function">UpgradableGuard <span class="hljs-title">l</span><span class="hljs-params">(m_lock)</span></span>;</span><br><span class="line">        <span class="hljs-keyword">auto</span> ir = check_WITH_LOCK(h, _ik);</span><br><span class="line">        <span class="hljs-keyword">if</span> (ir != ImportResult::Success)</span><br><span class="line">            <span class="hljs-keyword">return</span> ir;</span><br><span class="line"></span><br><span class="line">        &#123;</span><br><span class="line">            _transaction.safeSender();  <span class="hljs-comment">// Perform EC recovery outside of the write lock</span></span><br><span class="line">            <span class="hljs-function">UpgradeGuard <span class="hljs-title">ul</span><span class="hljs-params">(l)</span></span>;</span><br><span class="line">            ret = manageImport_WITH_LOCK(h, _transaction);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到先是调用<code>TransactionQueue::check_WITH_LOCK()</code>函数来做一个简单检查。检查的过程是看这个交易是否是已经校验过的，是否是之前被删除的。<br>接着调用<code>_transaction.safeSender()</code>，这个函数是通过签名反推<code>sender</code>，在交易那一节已经说过。最后调用<code>manageImport_WITH_LOCK()</code>函数来处理交易。<br><code>manageImport_WITH_LOCK()</code>函数过程稍稍复杂，我们可以一步一步来分析。<br>第一步：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">auto</span> cs = m_currentByAddressAndNonce.find(_transaction.from());</span><br><span class="line"><span class="hljs-keyword">if</span> (cs != m_currentByAddressAndNonce.end())</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">auto</span> t = cs-&gt;second.find(_transaction.nonce());</span><br><span class="line">    <span class="hljs-keyword">if</span> (t != cs-&gt;second.end())</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-keyword">if</span> (_transaction.gasPrice() &lt; (*t-&gt;second).transaction.gasPrice())</span><br><span class="line">            <span class="hljs-keyword">return</span> ImportResult::OverbidGasPrice;</span><br><span class="line">        <span class="hljs-keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            h256 dropped = (*t-&gt;second).transaction.sha3();</span><br><span class="line">            remove_WITH_LOCK(dropped);</span><br><span class="line">            m_onReplaced(dropped);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这一步是检查<code>m_currentByAddressAndNonce</code>中是否有重复项，判断标准是<code>sender</code>和<code>nonce</code>，如果存在重复的则检查<code>gasPrice</code>，如果新的交易<code>gasPrice</code>更低，则校验失败，否则将现有的交易删除，替换为<code>gasPrice</code>更高的交易。<br>第二步是检查<code>m_future</code>，检查过程与第一步类似。<br>第三步：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">// If valid, append to transactions.</span></span><br><span class="line">insertCurrent_WITH_LOCK(make_pair(_h, _transaction));</span><br><span class="line">LOG(m_loggerDetail) &lt;&lt; <span class="hljs-string">"Queued vaguely legit-looking transaction "</span> &lt;&lt; _h;</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">while</span> (m_current.size() &gt; m_limit)</span><br><span class="line">&#123;</span><br><span class="line">    LOG(m_loggerDetail) &lt;&lt; <span class="hljs-string">"Dropping out of bounds transaction "</span> &lt;&lt; _h;</span><br><span class="line">    remove_WITH_LOCK(m_current.rbegin()-&gt;transaction.sha3());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">m_onReady();</span><br></pre></td></tr></table></figure>
+
+<p>这里调用<code>insertCurrent_WITH_LOCK()</code>插入队列，然后将超出容量<code>m_limit</code>的部分删除，并调用<code>m_onReady()</code>表示目前队列有数据了，可以来取了。<br>我们再来看<code>insertCurrent_WITH_LOCK()</code>函数是怎么将交易插入队列的。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> TransactionQueue::insertCurrent_WITH_LOCK(<span class="hljs-built_in">std</span>::pair&lt;h256, Transaction&gt; <span class="hljs-keyword">const</span>&amp; _p)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (m_currentByHash.count(_p.first))</span><br><span class="line">    &#123;</span><br><span class="line">        cwarn &lt;&lt; <span class="hljs-string">"Transaction hash"</span> &lt;&lt; _p.first &lt;&lt; <span class="hljs-string">"already in current?!"</span>;</span><br><span class="line">        <span class="hljs-keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Transaction <span class="hljs-keyword">const</span>&amp; t = _p.second;</span><br><span class="line">    <span class="hljs-comment">// Insert into current</span></span><br><span class="line">    <span class="hljs-keyword">auto</span> inserted = m_currentByAddressAndNonce[t.from()].insert(<span class="hljs-built_in">std</span>::make_pair(t.nonce(), PriorityQueue::iterator()));</span><br><span class="line">    PriorityQueue::iterator handle = m_current.emplace(VerifiedTransaction(t));</span><br><span class="line">    inserted.first-&gt;second = handle;</span><br><span class="line">    m_currentByHash[_p.first] = handle;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-comment">// Move following transactions from future to current</span></span><br><span class="line">    makeCurrent_WITH_LOCK(t);</span><br><span class="line">    m_known.insert(_p.first);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>先还是检查是否有重复项，然后把交易插入<code>m_current</code>里，并记下插入的位置(迭代器)，再分别加入<code>m_currentByAddressAndNonce</code>和<code>m_currentByHash</code>中。<br>注意到末尾还有个<code>makeCurrent_WITH_LOCK()</code>的调用，这个是看情况将<code>m_future</code>里的交易移到<code>m_current</code>中。</p>
+<h1 id="交易队列的输出"><a href="#交易队列的输出" class="headerlink" title="交易队列的输出"></a>交易队列的输出</h1><p>交易队列输出只有一个，那就是区块block。在<code>Block::sync()</code>中会调用<code>TransactionQueue::topTransactions()</code>来取队列的前N项数据，再加入<code>block</code>中。</p>
+
+        </div>
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/以太坊-C-源码/">以太坊 C++ 源码</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3>
+        <div class="buttons is-centered">
+            
+                
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>支付宝</span>
+    <div class="qrcode"><img src="/images/Allipay.jpg" alt="支付宝"></div>
+</a>
+
+                
+                
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>微信</span>
+    <div class="qrcode"><img src="/images/WeChat.png" alt="微信"></div>
+</a>
+
+                
+                <!-- Visit https://www.paypal.com/donate/buttons/ to get your donate button -->
+
+<a class="button is-warning donate" onclick="document.getElementById(&#39;paypal-donate-form&#39;).submit()">
+    <span class="icon is-small">
+        <i class="fab fa-paypal"></i>
+    </span>
+    <span>Paypal</span>
+</a>
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" id="paypal-donate-form">
+    <input type="hidden" name="cmd" value="_donations">
+    <input type="hidden" name="business" value="xingkong2000cn@gmail.com">
+    <input type="hidden" name="currency_code" value="USD">
+</form>
+
+                
+        </div>
+    </div>
+</div>
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/07/04/以太坊C-源码解析（九）区块头/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">以太坊C++源码解析（九）区块头</span>
+            </a>
+        </div>
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/07/04/以太坊C-源码解析（八）交易队列（一）/">
+                <span class="level-item">以太坊C++源码解析（八）交易队列（一）</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-3-desktop is-3-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered">
+                <div>
+                    
+                        <img class="image is-128x128 has-mb-6" src="/images/images.jpg" alt="Will Wang">
+                    
+                    
+                    <p class="is-size-4 is-block">
+                        Will Wang
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-block">
+                        Software Engineer
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>China</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        文章
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        20
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        分类
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        1
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        标签
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        1
+                    </p>
+                </div>
+            </div>
+        </nav>
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://github.com/xingkong2014" target="_blank">
+                关注我</a>
+        </div>
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Github" href="https://github.com/xingkong2014">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Facebook" href="https://facebook.com">
+                
+                <i class="fab fa-facebook"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Twitter" href="https://twitter.com">
+                
+                <i class="fab fa-twitter"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Dribbble" href="https://dribbble.com">
+                
+                <i class="fab fa-dribbble"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="RSS" href="/">
+                
+                <i class="fas fa-rss"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                分类
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/categories/以太坊C-源码解析/">
+            <span class="level-start">
+                <span class="level-item">以太坊C++源码解析</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">20</span>
+            </span>
+        </a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            最新文章
+        </h3>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:45:17.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（九）区块头/" class="has-link-black-ter is-size-6">以太坊C++源码解析（九）区块头</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:43:03.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（八）交易队列（二）/" class="has-link-black-ter is-size-6">以太坊C++源码解析（八）交易队列（二）</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:39:44.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（八）交易队列（一）/" class="has-link-black-ter is-size-6">以太坊C++源码解析（八）交易队列（一）</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:36:57.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（七）交易/" class="has-link-black-ter is-size-6">以太坊C++源码解析（七）交易</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:35:17.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（五）区块链同步-6/" class="has-link-black-ter is-size-6">以太坊C++源码解析（五）区块链同步(6)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+    </div>
+</div>
+
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                标签
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/以太坊-C-源码/">
+                        <span class="tag">以太坊 C++ 源码</span>
+                        <span class="tag is-grey">20</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+        </div>
+    
+</div>
+
+                
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/">
+                
+                    <img src="/images/logo.svg" alt="以太坊C++源码解析（八）交易队列（二）" height="28">
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2019 Will Wang&nbsp;
+                Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a>
+                
+                </p>
+            </div>
+            <div class="level-end">
+            
+                <div class="field has-addons is-flex-center-mobile has-mt-5-mobile is-flex-wrap is-flex-middle">
+                
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Creative Commons" href="https://creativecommons.org/">
+                        
+                        <i class="fab fa-creative-commons"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/">
+                        
+                        <i class="fab fa-creative-commons-by"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus">
+                        
+                        <i class="fab fa-github"></i>
+                        
+                    </a>
+                </p>
+                
+                </div>
+            
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("zh-CN");</script>
+
+
+    
+    
+    
+    <script src="/js/animation.js"></script>
+    
+
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+    <script src="/js/gallery.js" defer></script>
+    
+
+    
+    
+
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+
+    
+    
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+});
+</script>
+
+    
+    
+
+<a id="back-to-top" title="回到顶端" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/js/back-to-top.js" defer></script>
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+    <script src="/js/clipboard.js" defer></script>
+    
+
+    
+    
+    
+
+
+<script src="/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="想要查找什么...">
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/js/insight.js" defer></script>
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/insight.css">
+    
+</body>
+</html>

@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>以太坊C++源码解析（五）区块链同步(1) - 星空工作室</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+    <meta name="description" content="在p2p(6)那一节末尾我们涉及到了BlockChainSync::syncPeer()函数，实际上到这里已经进入了另外一个重要模块：区块链同步模块，这个模块算是P2P模块交互模块。">
+<meta name="keywords" content="以太坊 C++ 源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="以太坊C++源码解析（五）区块链同步(1)">
+<meta property="og:url" content="http://yoursite.com/2019/07/04/以太坊C-源码解析（五）区块链同步-1/index.html">
+<meta property="og:site_name" content="星空工作室">
+<meta property="og:description" content="在p2p(6)那一节末尾我们涉及到了BlockChainSync::syncPeer()函数，实际上到这里已经进入了另外一个重要模块：区块链同步模块，这个模块算是P2P模块交互模块。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/images/og_image.png">
+<meta property="og:updated_time" content="2019-07-04T03:03:03.063Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="以太坊C++源码解析（五）区块链同步(1)">
+<meta name="twitter:description" content="在p2p(6)那一节末尾我们涉及到了BlockChainSync::syncPeer()函数，实际上到这里已经进入了另外一个重要模块：区块链同步模块，这个模块算是P2P模块交互模块。">
+<meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
+
+
+
+
+
+
+
+<link rel="icon" href="/images/favicon.svg">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css">
+
+
+    
+    
+    
+    <style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+    
+
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+    
+
+    
+    
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+
+    
+    
+    
+    
+
+<link rel="stylesheet" href="/css/back-to-top.css">
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+<link rel="stylesheet" href="/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+    
+    
+    
+
+    
+    
+    
+
+
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="is-2-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/">
+            
+                <img src="/images/logo.svg" alt="以太坊C++源码解析（五）区块链同步(1)" height="28">
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item" href="/">主页</a>
+                
+                <a class="navbar-item" href="/archives">存档</a>
+                
+                <a class="navbar-item" href="/categories">分类</a>
+                
+                <a class="navbar-item" href="/tags">标签</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                
+                
+                <a class="navbar-item search" title="搜索" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main"><div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-07-04T03:00:18.000Z">2019-07-04</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    14 分钟 读完 (大约 2091 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                以太坊C++源码解析（五）区块链同步(1)
+            
+        </h1>
+        <div class="content">
+            <p>在p2p(6)那一节末尾我们涉及到了<code>BlockChainSync::syncPeer()</code>函数，实际上到这里已经进入了另外一个重要模块：<strong>区块链同步</strong>模块，这个模块算是P2P模块交互模块。</p>
+<a id="more"></a>
+<blockquote>
+<p>我们知道区块链是一个分布式账本，在所有的全节点上都有区块链的一个完整副本，这些全节点之间是相互同步的关系。当我们在本地搭建好一个全节点时，首先需要从其他节点把所有区块同步过来，目前以太坊mainnet链有600多万个区块，ropsten测试链有400多万个区块，具体的区块信息可以在<a href="https://etherscan.io/" target="_blank" rel="noopener">Etherscan</a>网站查询到。<br>如果想要在链上发送一个交易，必须要等到本地区块链同步接近最新块，否则交易不会被广播出来。换句话说，区块链同步接近完成是进行交易的前提条件！这里用<strong>接近</strong>完成而不用完成是因为区块同步永远都不会完成，以太坊差不多10多秒就会产生一个新的区块。<br>几百万个区块的同步是一个相当漫长且痛苦的过程，我目前同步的是ropsten测试链，也许是链上经常存在攻击，也许是中国这边节点少，同步过程相当不稳定，快的时候一晚上能同步50万个区块，慢的时候卡在某个区块一动不动好几天。<br>因此非常有必要深入了解区块链的同步过程。</p>
+</blockquote>
+<p>题外话不多说了，还是从<code>BlockChainSync::syncPeer(）</code>函数开始吧</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> BlockChainSync::syncPeer(<span class="hljs-built_in">std</span>::<span class="hljs-built_in">shared_ptr</span>&lt;EthereumPeer&gt; _peer, <span class="hljs-keyword">bool</span> _force)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-comment">// ...</span></span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">if</span> (m_state == SyncState::Waiting)</span><br><span class="line">        <span class="hljs-keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    u256 td = host().chain().details().totalDifficulty;</span><br><span class="line">    <span class="hljs-keyword">if</span> (host().bq().isActive())</span><br><span class="line">        td += host().bq().difficulty();</span><br><span class="line"></span><br><span class="line">    u256 syncingDifficulty = <span class="hljs-built_in">std</span>::max(m_syncingTotalDifficulty, td);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">if</span> (_force || _peer-&gt;m_totalDifficulty &gt; syncingDifficulty)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-keyword">if</span> (_peer-&gt;m_totalDifficulty &gt; syncingDifficulty)</span><br><span class="line">            LOG(m_logger) &lt;&lt; <span class="hljs-string">"Discovered new highest difficulty"</span>;</span><br><span class="line"></span><br><span class="line">        <span class="hljs-comment">// start sync</span></span><br><span class="line">        m_syncingTotalDifficulty = _peer-&gt;m_totalDifficulty;</span><br><span class="line">        <span class="hljs-keyword">if</span> (m_state == SyncState::Idle || m_state == SyncState::NotSynced)</span><br><span class="line">        &#123;</span><br><span class="line">            LOG(m_loggerInfo) &lt;&lt; <span class="hljs-string">"Starting full sync"</span>;</span><br><span class="line">            m_state = SyncState::Blocks;</span><br><span class="line">        &#125;</span><br><span class="line">        _peer-&gt;requestBlockHeaders(_peer-&gt;m_latestHash, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-literal">false</span>);</span><br><span class="line">        _peer-&gt;m_requireTransactions = <span class="hljs-literal">true</span>;</span><br><span class="line">        <span class="hljs-keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">if</span> (m_state == SyncState::Blocks)</span><br><span class="line">    &#123;</span><br><span class="line">        requestBlocks(_peer);</span><br><span class="line">        <span class="hljs-keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>开头有一个判断条件<code>m_state == SyncState::Waiting</code>，这是一个是否同步的开关，从别的节点peer同步过来的区块是放到一个缓存里的，当这个缓存满的时候，开关关闭，同步会暂时中止。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">u256 td = host().chain().details().totalDifficulty;</span><br><span class="line"><span class="hljs-keyword">if</span> (host().bq().isActive())</span><br><span class="line">    td += host().bq().difficulty();</span><br><span class="line"></span><br><span class="line">u256 syncingDifficulty = <span class="hljs-built_in">std</span>::max(m_syncingTotalDifficulty, td);</span><br></pre></td></tr></table></figure>
+
+<p>这段代码是计算本地当前同步的区块链的总难度。</p>
+<blockquote>
+<p>区块链矿工竞争是通过难度来衡量的，所有节点倾向于相信难度大的区块</p>
+</blockquote>
+<p>如果该节点peer的总难度比我自身难度大，那么就需要从该节点同步(<em>这里有一个漏洞，如果有人伪造一个非常大的难度，那么本节点会一直从对方同步，直到一个新的更大难度的节点出现，这样可能会导致同步卡住</em>)
+<code>m_state</code>表示同步的状态，当<code>m_state</code>为<code>SyncState::Idle</code>或者<code>SyncState::NotSynced</code>时，同步就真正开始了！</p>
+<blockquote>
+<p>区块分为区块头和区块体，这两部分是分别下载的。</p>
+</blockquote>
+<p>首先下载的是对方节点最新块的区块头，也就是：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">_peer-&gt;requestBlockHeaders(_peer-&gt;m_latestHash, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-literal">false</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这里调用的是<code>EthereumPeer::requestBlockHeaders()</code>函数。<br>反之如果该节点难度没有我自身难度大，并且之前同步过区块头的话，就准备同步区块体，也就是：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">if</span> (m_state == SyncState::Blocks)</span><br><span class="line">&#123;</span><br><span class="line">    requestBlocks(_peer);</span><br><span class="line">    <span class="hljs-keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们先来看看<code>EthereumPeer::requestBlockHeaders()</code>函数的实现。</p>
+<blockquote>
+<p>在<code>EthereumPeer</code>类里有两个<code>requestBlockHeaders()</code>函数，分别是按区块号来同步和按区块hash值来同步，这里调用的是后者。</p>
+</blockquote>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> EthereumPeer::requestBlockHeaders(h256 <span class="hljs-keyword">const</span>&amp; _startHash, <span class="hljs-keyword">unsigned</span> _count, <span class="hljs-keyword">unsigned</span> _skip, <span class="hljs-keyword">bool</span> _reverse)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-comment">// ...</span></span><br><span class="line">    setAsking(Asking::BlockHeaders);</span><br><span class="line">    RLPStream s;</span><br><span class="line">    prep(s, GetBlockHeadersPacket, <span class="hljs-number">4</span>) &lt;&lt; _startHash &lt;&lt; _count &lt;&lt; _skip &lt;&lt; (_reverse ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>);</span><br><span class="line">    LOG(m_logger) &lt;&lt; <span class="hljs-string">"Requesting "</span> &lt;&lt; _count &lt;&lt; <span class="hljs-string">" block headers starting from "</span> &lt;&lt; _startHash</span><br><span class="line">                &lt;&lt; (_reverse ? <span class="hljs-string">" in reverse"</span> : <span class="hljs-string">""</span>);</span><br><span class="line">    m_lastAskedHeaders = _count;</span><br><span class="line">    sealAndSend(s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个函数比较简单，就是向对方发送一个<code>GetBlockHeadersPacket</code>数据包。那么对方接到这个包以后怎么回应呢？照例到<code>EthereumPeer::interpret()</code>函数里去找：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">case</span> GetBlockHeadersPacket:</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-comment">/// Packet layout:</span></span><br><span class="line">    <span class="hljs-comment">/// [ block: &#123; P , B_32 &#125;, maxHeaders: P, skip: P, reverse: P in &#123; 0 , 1 &#125; ]</span></span><br><span class="line">    <span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span> blockId = _r[<span class="hljs-number">0</span>];</span><br><span class="line">    <span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span> maxHeaders = _r[<span class="hljs-number">1</span>].toInt&lt;u256&gt;();</span><br><span class="line">    <span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span> skip = _r[<span class="hljs-number">2</span>].toInt&lt;u256&gt;();</span><br><span class="line">    <span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span> reverse = _r[<span class="hljs-number">3</span>].toInt&lt;<span class="hljs-keyword">bool</span>&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">auto</span> numHeadersToSend = maxHeaders &lt;= c_maxHeadersToSend ? <span class="hljs-keyword">static_cast</span>&lt;<span class="hljs-keyword">unsigned</span>&gt;(maxHeaders) : c_maxHeadersToSend;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">if</span> (skip &gt; <span class="hljs-built_in">std</span>::numeric_limits&lt;<span class="hljs-keyword">unsigned</span>&gt;::max() - <span class="hljs-number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        cnetdetails &lt;&lt; <span class="hljs-string">"Requested block skip is too big: "</span> &lt;&lt; skip;</span><br><span class="line">        <span class="hljs-keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    pair&lt;bytes, <span class="hljs-keyword">unsigned</span>&gt; <span class="hljs-keyword">const</span> rlpAndItemCount = hostData-&gt;blockHeaders(blockId, numHeadersToSend, skip, reverse);</span><br><span class="line"></span><br><span class="line">    RLPStream s;</span><br><span class="line">    prep(s, BlockHeadersPacket, rlpAndItemCount.second).appendRaw(rlpAndItemCount.first, rlpAndItemCount.second);</span><br><span class="line">    sealAndSend(s);</span><br><span class="line">    addRating(<span class="hljs-number">0</span>);</span><br><span class="line">    <span class="hljs-keyword">break</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到这里主要是调用了<code>hostData-&gt;blockHeaders()</code>函数获取区块头，并回复对方<code>BlockHeadersPacket</code>数据包。其中<code>hostData</code>是<code>EthereumHostData</code>类指针，<code>blockId</code>可能有两个值，分别是区块号或者区块hash值，对应前面两个<code>requestBlockHeaders()</code>函数。<code>maxHeaders</code>是请求区块头的数量。<br>我们再看看<code>EthereumHostData::blockHeaders()</code>函数实现：<br>这个函数有点长，先贴一部分代码吧：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">auto</span> numHeadersToSend = _maxHeaders;</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">auto</span> step = <span class="hljs-keyword">static_cast</span>&lt;<span class="hljs-keyword">unsigned</span>&gt;(_skip) + <span class="hljs-number">1</span>;</span><br><span class="line">assert(step &gt; <span class="hljs-number">0</span> &amp;&amp; <span class="hljs-string">"step must not be 0"</span>);</span><br><span class="line"></span><br><span class="line">h256 blockHash;</span><br><span class="line"><span class="hljs-keyword">if</span> (_blockId.size() == <span class="hljs-number">32</span>) <span class="hljs-comment">// block id is a hash</span></span><br><span class="line">&#123;</span><br><span class="line">    blockHash = _blockId.toHash&lt;h256&gt;();</span><br><span class="line">    <span class="hljs-comment">// ...</span></span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">if</span> (!m_chain.isKnown(blockHash))</span><br><span class="line">        blockHash = &#123;&#125;;</span><br><span class="line">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!_reverse)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-keyword">auto</span> n = m_chain.number(blockHash);</span><br><span class="line">        <span class="hljs-keyword">if</span> (numHeadersToSend == <span class="hljs-number">0</span>)</span><br><span class="line">            blockHash = &#123;&#125;;</span><br><span class="line">        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (n != <span class="hljs-number">0</span> || blockHash == m_chain.genesisHash())</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="hljs-keyword">auto</span> top = n + <span class="hljs-keyword">uint64_t</span>(step) * numHeadersToSend - <span class="hljs-number">1</span>;</span><br><span class="line">            <span class="hljs-keyword">auto</span> lastBlock = m_chain.number();</span><br><span class="line">            <span class="hljs-keyword">if</span> (top &gt; lastBlock)</span><br><span class="line">            &#123;</span><br><span class="line">                numHeadersToSend = (lastBlock - n) / step + <span class="hljs-number">1</span>;</span><br><span class="line">                top = n + step * (numHeadersToSend - <span class="hljs-number">1</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            assert(top &lt;= lastBlock &amp;&amp; <span class="hljs-string">"invalid top block calculated"</span>);</span><br><span class="line">            blockHash = m_chain.numberHash(<span class="hljs-keyword">static_cast</span>&lt;<span class="hljs-keyword">unsigned</span>&gt;(top)); <span class="hljs-comment">// override start block hash with the hash of the top block we have</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="hljs-keyword">else</span></span><br><span class="line">            blockHash = &#123;&#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>numHeadersToSend</code>这个值是需要发送的最大区块头数量，<code>_skip</code>值为0，因此<code>step</code>值为1。<br>接着判断<code>_blockId</code>里是区块hash还是区块号，贴出来的这部分代码是区块hash，处理区块号那部分代码类似，有兴趣可以自己去看。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">if</span> (!m_chain.isKnown(blockHash))</span><br><span class="line">    blockHash = &#123;&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这里是判断如果该区块hash不在我本地区块链里，则不返回任何东西。<br><code>_reverse</code>值为false，取出<code>blockHash</code>对应的块号<code>n</code>，计算要取的最高块号<code>top</code>，再得到当前区块链最新块号<code>lastBlock</code>，判断边界条件，<code>top</code>值不能超过<code>lastBlock</code>，如果超过了则<code>top=lastBlock</code>，再算出<code>top</code>对应的块hash值<code>blockHash</code>。</p>
+<blockquote>
+<p>注意这里的<code>blockHash</code>是最高块的hash值，为什么需要这个值呢？因为区块链里区块是像单向链表连接起来的，其中0号区块是创世区块，后续区块从1开始递增，每个区块里会记录上一级区块的hash值，相当于是指向父区块的指针，因此我们遍历的时候只能从后往前遍历。<img src="https://upload-images.jianshu.io/upload_images/1603745-de8bcb564fda1142.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="区块链示意图"></p>
+</blockquote>
+<p>接着往下看：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">auto</span> nextHash = [<span class="hljs-keyword">this</span>](h256 _h, <span class="hljs-keyword">unsigned</span> _step)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">const</span> <span class="hljs-keyword">unsigned</span> c_blockNumberUsageLimit = <span class="hljs-number">1000</span>;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span> lastBlock = m_chain.number();</span><br><span class="line">    <span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span> limitBlock = lastBlock &gt; c_blockNumberUsageLimit ? lastBlock - c_blockNumberUsageLimit : <span class="hljs-number">0</span>; <span class="hljs-comment">// find the number of the block below which we don't expect BC changes.</span></span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">while</span> (_step) <span class="hljs-comment">// parent hash traversal</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-keyword">auto</span> details = m_chain.details(_h);</span><br><span class="line">        <span class="hljs-keyword">if</span> (details.number &lt; limitBlock)</span><br><span class="line">            <span class="hljs-keyword">break</span>; <span class="hljs-comment">// stop using parent hash traversal, fallback to using block numbers</span></span><br><span class="line">        _h = details.parent;</span><br><span class="line">        --_step;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">if</span> (_step) <span class="hljs-comment">// still need lower block</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-keyword">auto</span> n = m_chain.number(_h);</span><br><span class="line">        <span class="hljs-keyword">if</span> (n &gt;= _step)</span><br><span class="line">            _h = m_chain.numberHash(n - _step);</span><br><span class="line">        <span class="hljs-keyword">else</span></span><br><span class="line">            _h = &#123;&#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span> _h;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这里定义了一个函数<code>nextHash()</code>，用来从后向前遍历区块hash的。<code>_h</code>是当前区块hash，<code>_step</code>值为1。<br>可以看到这里对区块做了一个分段，进行了区别处理，如果<code>_h</code>所在区块与最新区块距离超过1000个块，则采用区块号递减方式来遍历，也就是按遍历数组的方式遍历，即<code>_h = m_chain.numberHash(n - _step);</code>，否则按单向链表的方式遍历，即<code>_h = details.parent;</code>。
+最后一部分准备返回数据</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">bytes rlp;</span><br><span class="line"><span class="hljs-keyword">unsigned</span> itemCount = <span class="hljs-number">0</span>;</span><br><span class="line"><span class="hljs-built_in">vector</span>&lt;h256&gt; hashes;</span><br><span class="line"><span class="hljs-keyword">for</span> (<span class="hljs-keyword">unsigned</span> i = <span class="hljs-number">0</span>; i != numHeadersToSend; ++i)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (!blockHash || !m_chain.isKnown(blockHash))</span><br><span class="line">        <span class="hljs-keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    hashes.push_back(blockHash);</span><br><span class="line">    ++itemCount;</span><br><span class="line"></span><br><span class="line">    blockHash = nextHash(blockHash, step);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">for</span> (<span class="hljs-keyword">unsigned</span> i = <span class="hljs-number">0</span>; i &lt; hashes.size() &amp;&amp; rlp.size() &lt; c_maxPayload; ++i)</span><br><span class="line">    rlp += m_chain.headerData(hashes[_reverse ? i : hashes.size() - <span class="hljs-number">1</span> - i]);</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">return</span> make_pair(rlp, itemCount);</span><br></pre></td></tr></table></figure>
+
+<p>把需要返回的区块头放到rlp中，并统计返回的区块头数量<code>itemCount</code>。</p>
+<blockquote>
+<p>从这里可以看到有时候<code>itemCount</code>是0的，也就是可以不返回任何区块头，在实际同步中会经常碰到这种情况。</p>
+</blockquote>
+
+        </div>
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/以太坊-C-源码/">以太坊 C++ 源码</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3>
+        <div class="buttons is-centered">
+            
+                
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>支付宝</span>
+    <div class="qrcode"><img src="/images/Allipay.jpg" alt="支付宝"></div>
+</a>
+
+                
+                
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>微信</span>
+    <div class="qrcode"><img src="/images/WeChat.png" alt="微信"></div>
+</a>
+
+                
+                <!-- Visit https://www.paypal.com/donate/buttons/ to get your donate button -->
+
+<a class="button is-warning donate" onclick="document.getElementById(&#39;paypal-donate-form&#39;).submit()">
+    <span class="icon is-small">
+        <i class="fab fa-paypal"></i>
+    </span>
+    <span>Paypal</span>
+</a>
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" id="paypal-donate-form">
+    <input type="hidden" name="cmd" value="_donations">
+    <input type="hidden" name="business" value="xingkong2000cn@gmail.com">
+    <input type="hidden" name="currency_code" value="USD">
+</form>
+
+                
+        </div>
+    </div>
+</div>
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/07/04/以太坊C-源码解析（六）以太坊The-DAO分叉/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">以太坊C++源码解析（六）以太坊The DAO分叉</span>
+            </a>
+        </div>
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/07/04/以太坊C-源码解析（三）p2p-6/">
+                <span class="level-item">以太坊C++源码解析（三）p2p(6)</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-3-desktop is-3-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered">
+                <div>
+                    
+                        <img class="image is-128x128 has-mb-6" src="/images/images.jpg" alt="Will Wang">
+                    
+                    
+                    <p class="is-size-4 is-block">
+                        Will Wang
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-block">
+                        Software Engineer
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>China</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        文章
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        20
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        分类
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        1
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        标签
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        1
+                    </p>
+                </div>
+            </div>
+        </nav>
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://github.com/xingkong2014" target="_blank">
+                关注我</a>
+        </div>
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Github" href="https://github.com/xingkong2014">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Facebook" href="https://facebook.com">
+                
+                <i class="fab fa-facebook"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Twitter" href="https://twitter.com">
+                
+                <i class="fab fa-twitter"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Dribbble" href="https://dribbble.com">
+                
+                <i class="fab fa-dribbble"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="RSS" href="/">
+                
+                <i class="fas fa-rss"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                分类
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/categories/以太坊C-源码解析/">
+            <span class="level-start">
+                <span class="level-item">以太坊C++源码解析</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">20</span>
+            </span>
+        </a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            最新文章
+        </h3>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:45:17.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（九）区块头/" class="has-link-black-ter is-size-6">以太坊C++源码解析（九）区块头</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:43:03.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（八）交易队列（二）/" class="has-link-black-ter is-size-6">以太坊C++源码解析（八）交易队列（二）</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:39:44.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（八）交易队列（一）/" class="has-link-black-ter is-size-6">以太坊C++源码解析（八）交易队列（一）</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:36:57.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（七）交易/" class="has-link-black-ter is-size-6">以太坊C++源码解析（七）交易</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:35:17.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（五）区块链同步-6/" class="has-link-black-ter is-size-6">以太坊C++源码解析（五）区块链同步(6)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+    </div>
+</div>
+
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                标签
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/以太坊-C-源码/">
+                        <span class="tag">以太坊 C++ 源码</span>
+                        <span class="tag is-grey">20</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+        </div>
+    
+</div>
+
+                
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/">
+                
+                    <img src="/images/logo.svg" alt="以太坊C++源码解析（五）区块链同步(1)" height="28">
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2019 Will Wang&nbsp;
+                Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a>
+                
+                </p>
+            </div>
+            <div class="level-end">
+            
+                <div class="field has-addons is-flex-center-mobile has-mt-5-mobile is-flex-wrap is-flex-middle">
+                
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Creative Commons" href="https://creativecommons.org/">
+                        
+                        <i class="fab fa-creative-commons"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/">
+                        
+                        <i class="fab fa-creative-commons-by"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus">
+                        
+                        <i class="fab fa-github"></i>
+                        
+                    </a>
+                </p>
+                
+                </div>
+            
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("zh-CN");</script>
+
+
+    
+    
+    
+    <script src="/js/animation.js"></script>
+    
+
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+    <script src="/js/gallery.js" defer></script>
+    
+
+    
+    
+
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+
+    
+    
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+});
+</script>
+
+    
+    
+
+<a id="back-to-top" title="回到顶端" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/js/back-to-top.js" defer></script>
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+    <script src="/js/clipboard.js" defer></script>
+    
+
+    
+    
+    
+
+
+<script src="/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="想要查找什么...">
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/js/insight.js" defer></script>
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/insight.css">
+    
+</body>
+</html>

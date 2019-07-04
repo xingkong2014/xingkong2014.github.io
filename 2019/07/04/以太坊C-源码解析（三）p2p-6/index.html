@@ -2,24 +2,24 @@
 <html lang="zh">
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-<title>以太坊C++源码解析（一）Worker类 - 星空工作室</title>
+<title>以太坊C++源码解析（三）p2p(6) - 星空工作室</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-    <meta name="description" content="在ethereum项目中Worker类是许多类的基类，子类们继承Worker类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说Worker类是一份公用代码类，那么是什么代码这么重要呢？">
+    <meta name="description" content="上一节中留了一个悬念，那就是在Session类中我们没有找到有意义的处理代码，这部分代码隐藏在哪里呢？  答案其实在上上节的末尾中">
 <meta name="keywords" content="以太坊 C++ 源码">
 <meta property="og:type" content="article">
-<meta property="og:title" content="以太坊C++源码解析（一）Worker类">
-<meta property="og:url" content="http://yoursite.com/2019/06/18/以太坊C-源码解析（一）Worker类/index.html">
+<meta property="og:title" content="以太坊C++源码解析（三）p2p(6)">
+<meta property="og:url" content="http://yoursite.com/2019/07/04/以太坊C-源码解析（三）p2p-6/index.html">
 <meta property="og:site_name" content="星空工作室">
-<meta property="og:description" content="在ethereum项目中Worker类是许多类的基类，子类们继承Worker类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说Worker类是一份公用代码类，那么是什么代码这么重要呢？">
+<meta property="og:description" content="上一节中留了一个悬念，那就是在Session类中我们没有找到有意义的处理代码，这部分代码隐藏在哪里呢？  答案其实在上上节的末尾中">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/og_image.png">
-<meta property="og:updated_time" content="2019-07-02T03:58:54.000Z">
+<meta property="og:updated_time" content="2019-07-04T03:05:59.181Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="以太坊C++源码解析（一）Worker类">
-<meta name="twitter:description" content="在ethereum项目中Worker类是许多类的基类，子类们继承Worker类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说Worker类是一份公用代码类，那么是什么代码这么重要呢？">
+<meta name="twitter:title" content="以太坊C++源码解析（三）p2p(6)">
+<meta name="twitter:description" content="上一节中留了一个悬念，那就是在Session类中我们没有找到有意义的处理代码，这部分代码隐藏在哪里呢？  答案其实在上上节的末尾中">
 <meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
 
 
@@ -94,7 +94,7 @@
         <div class="navbar-brand is-flex-center">
             <a class="navbar-item navbar-logo" href="/">
             
-                <img src="/images/logo.svg" alt="以太坊C++源码解析（一）Worker类" height="28">
+                <img src="/images/logo.svg" alt="以太坊C++源码解析（三）p2p(6)" height="28">
             
             </a>
         </div>
@@ -134,7 +134,7 @@
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
             <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-06-18T03:42:19.000Z">2019-06-18</time>
+                <time class="level-item has-text-grey" datetime="2019-07-04T02:57:13.000Z">2019-07-04</time>
                 
                 <div class="level-item">
                 <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
@@ -144,7 +144,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    3 分钟 读完 (大约 471 个字)
+                    6 分钟 读完 (大约 955 个字)
                 </span>
                 
                 
@@ -153,28 +153,44 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                以太坊C++源码解析（一）Worker类
+                以太坊C++源码解析（三）p2p(6)
             
         </h1>
         <div class="content">
-            <p>在ethereum项目中<code>Worker</code>类是许多类的基类，子类们继承<code>Worker</code>类严格来说并不是is-a的关系，而是复用Worker类中的代码，因此可以说<code>Worker</code>类是一份公用代码类，那么是什么代码这么重要呢？</p>
+            <p>上一节中留了一个悬念，那就是在<code>Session</code>类中我们没有找到有意义的处理代码，这部分代码隐藏在哪里呢？</p>
+<blockquote>
+<p>答案其实在上上节的末尾中</p>
+</blockquote>
 <a id="more"></a>
-<p>在Worker类中我们直接来看其成员，可以看到有两个重要的成员变量：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">unique_ptr</span>&lt;<span class="hljs-built_in">std</span>::thread&gt; m_work;</span><br><span class="line"><span class="hljs-keyword">mutable</span> <span class="hljs-built_in">std</span>::condition_variable m_state_notifier;</span><br></pre></td></tr></table></figure>
+<p>那就是<code>EthereumHost::newPeerCapability()</code>实现中！<br>我们来看下这个函数的实现：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-built_in">shared_ptr</span>&lt;Capability&gt; EthereumHost::newPeerCapability(<span class="hljs-built_in">shared_ptr</span>&lt;SessionFace&gt; <span class="hljs-keyword">const</span>&amp; _s, <span class="hljs-keyword">unsigned</span> _idOffset, p2p::CapDesc <span class="hljs-keyword">const</span>&amp; _cap)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">auto</span> ret = HostCapability&lt;EthereumPeer&gt;::newPeerCapability(_s, _idOffset, _cap);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">auto</span> cap = capabilityFromSession&lt;EthereumPeer&gt;(*_s, _cap.second);</span><br><span class="line">    assert(cap);</span><br><span class="line">    cap-&gt;init(</span><br><span class="line">        protocolVersion(),</span><br><span class="line">        m_networkId,</span><br><span class="line">        m_chain.details().totalDifficulty,</span><br><span class="line">        m_chain.currentHash(),</span><br><span class="line">        m_chain.genesisHash(),</span><br><span class="line">        m_hostData,</span><br><span class="line">        m_peerObserver</span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>看到这里经验丰富的程序员们应该就能想到这个是经典的生产消费者队列的C++11实现方式，还不了解生产消费者队列的同学可以暂停一下，先搜索一下相关知识再继续。<br>然后我们再来看两个重要的成员函数：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">startWorking</span><span class="hljs-params">()</span></span>;</span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">stopWorking</span><span class="hljs-params">()</span></span>;</span><br></pre></td></tr></table></figure>
+<p>这个函数上来先调用了父类的实现，然后调用<code>capabilityFromSession&lt;EthereumPeer&gt;()</code>函数返回<code>EthereumPeer</code>对象的指针，最后调用了<code>EthereumPeer::init()</code>。看来有必要深入这个函数里看看。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> EthereumPeer::init(<span class="hljs-keyword">unsigned</span> _hostProtocolVersion, u256 _hostNetworkId, u256 _chainTotalDifficulty, h256 _chainCurrentHash, h256 _chainGenesisHash, <span class="hljs-built_in">shared_ptr</span>&lt;EthereumHostDataFace&gt; _hostData, <span class="hljs-built_in">shared_ptr</span>&lt;EthereumPeerObserverFace&gt; _observer)</span><br><span class="line">&#123;</span><br><span class="line">    m_hostData = _hostData;</span><br><span class="line">    m_observer = _observer;</span><br><span class="line">    m_hostProtocolVersion = _hostProtocolVersion;</span><br><span class="line">    requestStatus(_hostNetworkId, _chainTotalDifficulty, _chainCurrentHash, _chainGenesisHash);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>这个其实就是启动和停止<code>m_work</code>这个线程了。<br>在<code>startWorking()</code>函数内部我们能看到线程的初始化过程，线程函数体用的是lambda表达式，其中最重要的一段我列出来：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">try</span></span><br><span class="line">&#123;</span><br><span class="line">	startedWorking();</span><br><span class="line">	workLoop();</span><br><span class="line">	doneWorking();</span><br><span class="line">&#125;</span><br><span class="line"><span class="hljs-keyword">catch</span> (<span class="hljs-built_in">std</span>::exception <span class="hljs-keyword">const</span>&amp; _e)</span><br><span class="line">&#123;</span><br><span class="line">	cwarn &lt;&lt; <span class="hljs-string">"Exception thrown in Worker thread: "</span> &lt;&lt; _e.what();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到这里有我们感兴趣的<code>requestStatus()</code>这个函数了！<br><code>EthereumPeer::requestStatus()</code>函数实现也比较简单，就是向对方发送一个<code>StatusPacket</code>包：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> EthereumPeer::requestStatus(u256 _hostNetworkId, u256 _chainTotalDifficulty, h256 _chainCurrentHash, h256 _chainGenesisHash)</span><br><span class="line">&#123;</span><br><span class="line">    assert(m_asking == Asking::Nothing);</span><br><span class="line">    setAsking(Asking::State);</span><br><span class="line">    m_requireTransactions = <span class="hljs-literal">true</span>;</span><br><span class="line">    RLPStream s;</span><br><span class="line">    prep(s, StatusPacket, <span class="hljs-number">5</span>) &lt;&lt; m_hostProtocolVersion &lt;&lt; _hostNetworkId &lt;&lt; _chainTotalDifficulty</span><br><span class="line">                            &lt;&lt; _chainCurrentHash &lt;&lt; _chainGenesisHash;</span><br><span class="line">    sealAndSend(s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>这个线程最重要的是执行了这三个操作，<code>startedWorking()</code>用于<code>workLoop()</code>前的准备工作,<code>doneWorking()</code>用于<code>workLoop()</code>后的收尾工资，<code>workLoop()</code>内部用一个循环调用了<code>doWork()</code>来做实际的工作：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> Worker::workLoop()</span><br><span class="line">&#123;</span><br><span class="line">	<span class="hljs-keyword">while</span> (m_state == WorkerState::Started)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="hljs-keyword">if</span> (m_idleWaitMs)</span><br><span class="line">			this_thread::sleep_for(chrono::milliseconds(m_idleWaitMs));</span><br><span class="line">		doWork();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这个数据包真正开始了与peer有意义的通讯！</p>
+</blockquote>
+<p>可以看到发送这个包的同时告知了对方我自己的<strong>版本号</strong>，<strong>网络id</strong>，<strong>区块链难度</strong>，<strong>当前区块链最新块hash值</strong>，<strong>当前区块链创世区块的hash值</strong>，这些信息非常重要！<br>对端peer接收到这个<code>StatusPacket</code>包以后怎么应答呢？前面讲过<code>EthereumPeer</code>类是<code>Session</code>类的消息处理器，那么我们到<code>EthereumPeer::interpret()</code>中去寻找：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">  <span class="hljs-keyword">case</span> StatusPacket:</span><br><span class="line">  &#123;</span><br><span class="line"><span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"StatusPacket"</span> &lt;&lt; <span class="hljs-built_in">endl</span>;</span><br><span class="line">      m_protocolVersion = _r[<span class="hljs-number">0</span>].toInt&lt;<span class="hljs-keyword">unsigned</span>&gt;();</span><br><span class="line">      m_networkId = _r[<span class="hljs-number">1</span>].toInt&lt;u256&gt;();</span><br><span class="line">      m_totalDifficulty = _r[<span class="hljs-number">2</span>].toInt&lt;u256&gt;();</span><br><span class="line">      m_latestHash = _r[<span class="hljs-number">3</span>].toHash&lt;h256&gt;();</span><br><span class="line">      m_genesisHash = _r[<span class="hljs-number">4</span>].toHash&lt;h256&gt;();</span><br><span class="line">      <span class="hljs-keyword">if</span> (m_peerCapabilityVersion == m_hostProtocolVersion)</span><br><span class="line">          m_protocolVersion = m_hostProtocolVersion;</span><br><span class="line"></span><br><span class="line">      LOG(m_logger) &lt;&lt; <span class="hljs-string">"Status: "</span> &lt;&lt; m_protocolVersion &lt;&lt; <span class="hljs-string">" / "</span> &lt;&lt; m_networkId &lt;&lt; <span class="hljs-string">" / "</span></span><br><span class="line">                    &lt;&lt; m_genesisHash.hex().c_str() &lt;&lt; <span class="hljs-string">", TD: "</span> &lt;&lt; m_totalDifficulty &lt;&lt; <span class="hljs-string">" = "</span> &lt;&lt; m_latestHash.hex().c_str();</span><br><span class="line">      setIdle();</span><br><span class="line">      observer-&gt;onPeerStatus(dynamic_pointer_cast&lt;EthereumPeer&gt;(dynamic_pointer_cast&lt;EthereumPeer&gt;(shared_from_this())));</span><br><span class="line">      <span class="hljs-keyword">break</span>;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
 
-<p>我们再来看这几个函数的定义：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">startedWorking</span><span class="hljs-params">()</span> </span>&#123;&#125;</span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doWork</span><span class="hljs-params">()</span> </span>&#123;&#125;</span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">workLoop</span><span class="hljs-params">()</span></span>;</span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doneWorking</span><span class="hljs-params">()</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到这里将对方的<strong>协议版本号</strong>，<strong>网络id</strong>等信息取出来，然后交给<code>observer</code>去处理。<br><code>observer</code>也是从<code>EthereumPeer::init()</code>函数中由<code>EthereumHost</code>类传过来的，所以还是要去<code>EthereumHost</code>那找，在<code>EthereumHost</code>类的构造函数中有这么一句话：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">m_peerObserver = make_shared&lt;EthereumPeerObserver&gt;(m_sync, m_tq);</span><br></pre></td></tr></table></figure>
 
-<p>可以看到除了<code>workLoop()</code>有一个默认的实现外，其他函数体都是空的，子类们通过重新实现这几个函数来实现具体的功能，后面我们会看到这些子类们是怎么做的。</p>
+<p><code>EthereumPeerObserver</code>这个类其实是一个过渡类，我们可以看看它的实现：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">onPeerStatus</span><span class="hljs-params">(<span class="hljs-built_in">std</span>::<span class="hljs-built_in">shared_ptr</span>&lt;EthereumPeer&gt; _peer)</span> override</span></span><br><span class="line"><span class="hljs-function"></span>&#123;</span><br><span class="line">    <span class="hljs-keyword">try</span></span><br><span class="line">    &#123;</span><br><span class="line">        m_sync-&gt;onPeerStatus(_peer);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">catch</span> (FailedInvariant <span class="hljs-keyword">const</span>&amp;)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-comment">// "fix" for https://github.com/ethereum/webthree-umbrella/issues/300</span></span><br><span class="line">        cwarn &lt;&lt; <span class="hljs-string">"Failed invariant during sync, restarting sync"</span>;</span><br><span class="line">        m_sync-&gt;restartSync();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个类里有许多这样的函数，都是过渡用的，其实真正调用的是<code>m_sync</code>里对应的函数。而<code>m_sync</code>从上面代码中可以看到其实是<code>EthereumHost</code>类里的<code>m_sync</code>，这个是<code>BlockChainSync</code>类对象。</p>
+<blockquote>
+<p>因此我们能够得出结论，所有数据包都是由<code>BlockChainSync</code>类对象来处理的！</p>
+</blockquote>
+<p>我们再来看看<code>BlockChainSync::onPeerStatus()</code>函数的实现：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> BlockChainSync::onPeerStatus(<span class="hljs-built_in">std</span>::<span class="hljs-built_in">shared_ptr</span>&lt;EthereumPeer&gt; _peer)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-comment">// ...</span></span><br><span class="line">    <span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* disconnectReason = <span class="hljs-literal">nullptr</span>;</span><br><span class="line">    <span class="hljs-keyword">if</span> (_peer-&gt;m_genesisHash != host().chain().genesisHash())</span><br><span class="line">        disconnectReason = <span class="hljs-string">"Invalid genesis hash."</span>;</span><br><span class="line">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (_peer-&gt;m_protocolVersion != host().protocolVersion())</span><br><span class="line">        disconnectReason = <span class="hljs-string">"Invalid protocol version."</span>;</span><br><span class="line">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (_peer-&gt;m_networkId != host().networkId())</span><br><span class="line">        disconnectReason = <span class="hljs-string">"Invalid network identifier."</span>;</span><br><span class="line">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (session-&gt;info().clientVersion.find(<span class="hljs-string">"/v0.7.0/"</span>) != <span class="hljs-built_in">string</span>::npos)</span><br><span class="line">        disconnectReason = <span class="hljs-string">"Blacklisted client version."</span>;</span><br><span class="line">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (host().isBanned(session-&gt;id()))</span><br><span class="line">        disconnectReason = <span class="hljs-string">"Peer banned for previous bad behaviour."</span>;</span><br><span class="line">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (_peer-&gt;m_asking != Asking::State &amp;&amp; _peer-&gt;m_asking != Asking::Nothing)</span><br><span class="line">        disconnectReason = <span class="hljs-string">"Peer banned for unexpected status message."</span>;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">if</span> (disconnectReason)</span><br><span class="line">    &#123;</span><br><span class="line">        LOG(m_logger) &lt;&lt; <span class="hljs-string">"Peer not suitable for sync: "</span> &lt;&lt; disconnectReason;</span><br><span class="line">        <span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"Peer not suitable for sync: "</span> &lt;&lt; disconnectReason &lt;&lt; <span class="hljs-built_in">endl</span>;</span><br><span class="line">        _peer-&gt;disconnect();</span><br><span class="line">        <span class="hljs-keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-comment">// Before starting to exchange the data with the node, let's verify that it's on our chain</span></span><br><span class="line">    <span class="hljs-keyword">if</span> (!requestDaoForkBlockHeader(_peer))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-comment">// DAO challenge not needed</span></span><br><span class="line">        <span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"onPeerStatus syncPeer"</span> &lt;&lt; <span class="hljs-built_in">endl</span>;</span><br><span class="line">        syncPeer(_peer, <span class="hljs-literal">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个函数先是做了一些检测，判断peer的一些参数和自己参数不一致就关闭连接。<br>最后调用了<code>syncPeer()</code>来对peer进行区块链同步！</p>
 
         </div>
         
@@ -244,12 +260,19 @@
     <div class="level post-navigation is-flex-wrap is-mobile">
         
         <div class="level-start">
-            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/06/21/以太坊C-源码解析（二）大数据类型/">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-1/">
                 <i class="level-item fas fa-chevron-left"></i>
-                <span class="level-item">以太坊C++源码解析（二）大数据类型</span>
+                <span class="level-item">以太坊C++源码解析（五）区块链同步(1)</span>
             </a>
         </div>
         
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/07/04/以太坊C-源码解析（四）RLPStream类/">
+                <span class="level-item">以太坊C++源码解析（四）RLPStream类</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
         
     </div>
 </div>
@@ -503,7 +526,7 @@
             <div class="level-start has-text-centered-mobile">
                 <a class="footer-logo is-block has-mb-6" href="/">
                 
-                    <img src="/images/logo.svg" alt="以太坊C++源码解析（一）Worker类" height="28">
+                    <img src="/images/logo.svg" alt="以太坊C++源码解析（三）p2p(6)" height="28">
                 
                 </a>
                 <p class="is-size-7">

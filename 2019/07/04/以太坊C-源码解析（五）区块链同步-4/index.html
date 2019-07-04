@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>以太坊C++源码解析（五）区块链同步(4) - 星空工作室</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+    <meta name="description" content="继续上一节的内容，收到其他peer发过来的区块头之后，流程要怎么走了呢？还记得上一节BlockChainSync::onPeerBlockHeaders()函数的末尾是collectBlocks()和continueSync()两个函数吗？collectBlocks()由于没有可合并的区块，我们留到后面去讲，而continueSync()会调用syncPeer()这个函数，这次由于m_state状">
+<meta name="keywords" content="以太坊 C++ 源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="以太坊C++源码解析（五）区块链同步(4)">
+<meta property="og:url" content="http://yoursite.com/2019/07/04/以太坊C-源码解析（五）区块链同步-4/index.html">
+<meta property="og:site_name" content="星空工作室">
+<meta property="og:description" content="继续上一节的内容，收到其他peer发过来的区块头之后，流程要怎么走了呢？还记得上一节BlockChainSync::onPeerBlockHeaders()函数的末尾是collectBlocks()和continueSync()两个函数吗？collectBlocks()由于没有可合并的区块，我们留到后面去讲，而continueSync()会调用syncPeer()这个函数，这次由于m_state状">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/images/og_image.png">
+<meta property="og:updated_time" content="2019-07-04T03:30:13.173Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="以太坊C++源码解析（五）区块链同步(4)">
+<meta name="twitter:description" content="继续上一节的内容，收到其他peer发过来的区块头之后，流程要怎么走了呢？还记得上一节BlockChainSync::onPeerBlockHeaders()函数的末尾是collectBlocks()和continueSync()两个函数吗？collectBlocks()由于没有可合并的区块，我们留到后面去讲，而continueSync()会调用syncPeer()这个函数，这次由于m_state状">
+<meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
+
+
+
+
+
+
+
+<link rel="icon" href="/images/favicon.svg">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css">
+
+
+    
+    
+    
+    <style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+    
+
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+    
+
+    
+    
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+
+    
+    
+    
+    
+
+<link rel="stylesheet" href="/css/back-to-top.css">
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+<link rel="stylesheet" href="/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+    
+    
+    
+
+    
+    
+    
+
+
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="is-2-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/">
+            
+                <img src="/images/logo.svg" alt="以太坊C++源码解析（五）区块链同步(4)" height="28">
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item" href="/">主页</a>
+                
+                <a class="navbar-item" href="/archives">存档</a>
+                
+                <a class="navbar-item" href="/categories">分类</a>
+                
+                <a class="navbar-item" href="/tags">标签</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                
+                
+                <a class="navbar-item search" title="搜索" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main"><div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-07-04T03:27:48.000Z">2019-07-04</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    11 分钟 读完 (大约 1685 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                以太坊C++源码解析（五）区块链同步(4)
+            
+        </h1>
+        <div class="content">
+            <p>继续上一节的内容，收到其他peer发过来的区块头之后，流程要怎么走了呢？还记得上一节<code>BlockChainSync::onPeerBlockHeaders()</code>函数的末尾是<code>collectBlocks()</code>和<code>continueSync()</code>两个函数吗？<code>collectBlocks()</code>由于没有可合并的区块，我们留到后面去讲，而<code>continueSync()</code>会调用<code>syncPeer()</code>这个函数，这次由于<code>m_state</code>状态已经是<code>SyncState::Blocks</code>，因此最终将会调用<code>BlockChainSync::requestBlocks()</code>函数。</p>
+<a id="more"></a>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">if</span> (m_state == SyncState::Blocks)</span><br><span class="line">&#123;</span><br><span class="line">    requestBlocks(_peer);</span><br><span class="line">    <span class="hljs-keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这和我们思考的逻辑相符，下载完了区块头，这不就是要请求下载区块体了吗？<br>因此我们来好好看看<code>BlockChainSync::requestBlocks()</code>这个函数，这也是一个非常重要的函数。<br>照例来一段一段分析：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">if</span> (host().bq().knownFull())</span><br><span class="line">&#123;</span><br><span class="line">    LOG(m_loggerDetail) &lt;&lt; <span class="hljs-string">"Waiting for block queue before downloading blocks"</span>;</span><br><span class="line">    pauseSync();</span><br><span class="line">    <span class="hljs-keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>函数开头就是一个非常重要的开关，我们之前提到过下载的区块会暂时存放到一级缓冲区里，合并后再写入二级缓冲区<code>BlockQueue</code>，那么当<code>BlockQueue</code>满了怎么办？这里的处理是暂停同步，调用<code>pauseSync()</code>来设置<code>m_state</code>值为<code>SyncState::Waiting</code>，在几个重要的同步函数中检测这个值就可以停止区块下载了。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">auto</span> header = m_headers.begin();</span><br><span class="line">h256s neededBodies;</span><br><span class="line"><span class="hljs-built_in">vector</span>&lt;<span class="hljs-keyword">unsigned</span>&gt; neededNumbers;</span><br><span class="line"><span class="hljs-keyword">unsigned</span> index = <span class="hljs-number">0</span>;</span><br><span class="line"><span class="hljs-keyword">if</span> (m_haveCommonHeader &amp;&amp; !m_headers.empty() &amp;&amp; m_headers.begin()-&gt;first == m_lastImportedBlock + <span class="hljs-number">1</span>)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">while</span> (header != m_headers.end() &amp;&amp; neededBodies.size() &lt; c_maxRequestBodies &amp;&amp; index &lt; header-&gt;second.size())</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-keyword">unsigned</span> block = header-&gt;first + index;</span><br><span class="line">        <span class="hljs-keyword">if</span> (m_downloadingBodies.count(block) == <span class="hljs-number">0</span> &amp;&amp; !haveItem(m_bodies, block))</span><br><span class="line">        &#123;</span><br><span class="line">            neededBodies.push_back(header-&gt;second[index].hash);</span><br><span class="line">            neededNumbers.push_back(block);</span><br><span class="line">            m_downloadingBodies.insert(block);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ++index;</span><br><span class="line">        <span class="hljs-keyword">if</span> (index &gt;= header-&gt;second.size())</span><br><span class="line">            <span class="hljs-keyword">break</span>; <span class="hljs-comment">// Download bodies only for validated header chain</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段是确定需要下载哪些区块的区块体，我们自然会想到应该是那些已经下载区块头对应的区块体，没错！但是有三个前提条件。这三个条件为：</p>
+<ul>
+<li>m_haveCommonHeader</li>
+<li>!m_headers.empty()</li>
+<li>m_headers.begin()-&gt;first == m_lastImportedBlock + 1</li>
+</ul>
+<p>其中第二个条件很容易理解且满足，主要是第一个和第三个条件，第一个条件的含义我在前面已经讲过，这个表示下载真正开始。第三个条件表示目前在<code>m_headers</code>里最低区块正是上次已经下载块的下一个块。</p>
+<p>满足这三个条件以后才开始遍历<code>m_headers</code>里第一个连续区块区域，比如<code>m_headers</code>里目前存放的区块是[[区块3，区块4，区块5], [区块8，区块9]]，那么这里遍历的就是[区块3，区块4，区块5]]这三个连续区块。需要下载区块体的区块hash被记录到<code>neededBodies</code>里，<code>neededNumbers</code>记录对应的区块号，<code>m_downloadingBodies</code>里则记录当前正要下载区块体的区块号，避免重复下载相同的区块。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">if</span> (neededBodies.size() &gt; <span class="hljs-number">0</span>)</span><br><span class="line">&#123;</span><br><span class="line">    m_bodySyncPeers[_peer] = neededNumbers;</span><br><span class="line">    _peer-&gt;requestBlockBodies(neededBodies);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果成功找到了需要下载区块体的区块，那么就调用<code>requestBlockBodies</code>去向对方请求。<br>如果没有，那么就说明上面的三大条件没有满足，不能下载区块体，那么就继续下载区块头吧。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">unsigned</span> start = <span class="hljs-number">0</span>;</span><br><span class="line"><span class="hljs-keyword">if</span> (!m_haveCommonHeader)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-comment">// download backwards until common block is found 1 header at a time</span></span><br><span class="line">    start = m_lastImportedBlock;</span><br><span class="line">    <span class="hljs-keyword">if</span> (!m_headers.empty())</span><br><span class="line">        start = <span class="hljs-built_in">std</span>::min(start, m_headers.begin()-&gt;first - <span class="hljs-number">1</span>);</span><br><span class="line">    m_lastImportedBlock = start;</span><br><span class="line">    m_lastImportedBlockHash = host().chain().numberHash(start);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">if</span> (start &lt;= m_chainStartBlock + <span class="hljs-number">1</span>)</span><br><span class="line">        m_haveCommonHeader = <span class="hljs-literal">true</span>; <span class="hljs-comment">//reached chain start</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我在之前都多次讲过区块链同步过程中的<strong>回退</strong>现象，在区块链本身不稳定的情况下，这种<strong>回退</strong>十分常见，比如<code>ropsten</code>链，但是在主链上似乎很少见到。那么<strong>回退</strong>是什么时候发生的呢？就是在这里了。<br>这里判断<code>m_haveCommonHeader</code>值为<code>false</code>就会发生<strong>回退</strong>，<strong>回退</strong>的过程是选取当前已经下载好的区块号和<code>m_headers</code>中最低区块的上一个区块之间取较小值作为新的同步起点<code>start</code>，也就是同步<strong>回退</strong>了，并将<code>m_lastImportedBlock</code>设为新的起点。如果已经退到链的起始块，那么退无可退了就只能前进了，将<code>m_haveCommonHeader</code>设为<code>true</code>。</p>
+<p>如果<code>m_haveCommonHeader</code>值还是为<code>false</code>，也就是并没有退到头，这实际上是<code>else</code>分支的内容，我提前来讲是因为这段太简单，就一句话：</p>
+<pre><code>_peer-&gt;requestBlockHeaders(start, 1, 0, false);</code></pre><p>试探性地向对方请求起点处的一个区块，如果这个区块还不能让<code>m_haveCommonHeader</code>值为true的话，那么就继续退。</p>
+<p>如果<code>m_haveCommonHeader</code>值为<code>true</code>了，不管是之前就是<code>true</code>还是退到了头，那么就要认真准备下面需要下载哪些区块头了。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">start = m_lastImportedBlock + <span class="hljs-number">1</span>;</span><br><span class="line"><span class="hljs-keyword">auto</span> next = m_headers.begin();</span><br><span class="line"><span class="hljs-keyword">unsigned</span> count = <span class="hljs-number">0</span>;</span><br><span class="line"><span class="hljs-keyword">if</span> (!m_headers.empty() &amp;&amp; start &gt;= m_headers.begin()-&gt;first)</span><br><span class="line">&#123;</span><br><span class="line">    start = m_headers.begin()-&gt;first + m_headers.begin()-&gt;second.size();</span><br><span class="line">    ++next;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果<code>start</code>小于<code>m_headers</code>里的最低块那就最好，否则将<code>start</code>设为第一个连续区块区域之后，并且next设为第二个连续区块区域的开始，如果还用上面那个例子，那么看起来就像这样：<br><img src="https://upload-images.jianshu.io/upload_images/1603745-e623b6a31e1dc7c8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="示意图"><br>其中虚线框的区块6和区块7表示还没下载的区块。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">while</span> (count == <span class="hljs-number">0</span> &amp;&amp; next != m_headers.end())</span><br><span class="line">&#123;</span><br><span class="line">    count = <span class="hljs-built_in">std</span>::min(c_maxRequestHeaders, next-&gt;first - start);</span><br><span class="line">    <span class="hljs-keyword">while</span>(count &gt; <span class="hljs-number">0</span> &amp;&amp; m_downloadingHeaders.count(start) != <span class="hljs-number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        start++;</span><br><span class="line">        count--;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-keyword">unsigned</span>&gt; headers;</span><br><span class="line">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">unsigned</span> block = start; block &lt; start + count; block++)</span><br><span class="line">        <span class="hljs-keyword">if</span> (m_downloadingHeaders.count(block) == <span class="hljs-number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            headers.push_back(block);</span><br><span class="line">            m_downloadingHeaders.insert(block);</span><br><span class="line">        &#125;</span><br><span class="line">    count = headers.size();</span><br><span class="line">    <span class="hljs-keyword">if</span> (count &gt; <span class="hljs-number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        m_headerSyncPeers[_peer] = headers;</span><br><span class="line">        assert(!haveItem(m_headers, start));</span><br><span class="line">        _peer-&gt;requestBlockHeaders(start, count, <span class="hljs-number">0</span>, <span class="hljs-literal">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (start &gt;= next-&gt;first)</span><br><span class="line">    &#123;</span><br><span class="line">        start = next-&gt;first + next-&gt;second.size();</span><br><span class="line">        ++next;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段用来精确地确定<code>start</code>值和需要下载区块头数量<code>count</code>。</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">count = <span class="hljs-built_in">std</span>::min(c_maxRequestHeaders, next-&gt;first - start);</span><br></pre></td></tr></table></figure>
+
+<p>开始的时候<code>count</code>设置为第二个连续区块区域和第一个连续区块区域之间所有块，但是不能超过最大值<code>c_maxRequestHeaders</code>，然后排除掉已经统计过的区块：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">while</span>(count &gt; <span class="hljs-number">0</span> &amp;&amp; m_downloadingHeaders.count(start) != <span class="hljs-number">0</span>)</span><br><span class="line">&#123;</span><br><span class="line">    start++;</span><br><span class="line">    count--;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>并将满足条件的区块加入到<code>headers</code>中：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-keyword">unsigned</span>&gt; headers;</span><br><span class="line"><span class="hljs-keyword">for</span> (<span class="hljs-keyword">unsigned</span> block = start; block &lt; start + count; block++)</span><br><span class="line">    <span class="hljs-keyword">if</span> (m_downloadingHeaders.count(block) == <span class="hljs-number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        headers.push_back(block);</span><br><span class="line">        m_downloadingHeaders.insert(block);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果<code>headers</code>大小不为0，则向peer请求<code>start</code>为起点，<code>count</code>为数量的区块头：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">count = headers.size();</span><br><span class="line"><span class="hljs-keyword">if</span> (count &gt; <span class="hljs-number">0</span>)</span><br><span class="line">&#123;</span><br><span class="line">    m_headerSyncPeers[_peer] = headers;</span><br><span class="line">    assert(!haveItem(m_headers, start));</span><br><span class="line">    _peer-&gt;requestBlockHeaders(start, count, <span class="hljs-number">0</span>, <span class="hljs-literal">false</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>否则如果<code>start</code>超过了第二个连续区块区域，则将<code>start</code>设为第二个连续区块区域的末尾，<code>next</code>设置为第三个连续区块区域的开始，继续上面的流程：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (start &gt;= next-&gt;first)</span><br><span class="line">&#123;</span><br><span class="line">    start = next-&gt;first + next-&gt;second.size();</span><br><span class="line">    ++next;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+        </div>
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/以太坊-C-源码/">以太坊 C++ 源码</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3>
+        <div class="buttons is-centered">
+            
+                
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>支付宝</span>
+    <div class="qrcode"><img src="/images/Allipay.jpg" alt="支付宝"></div>
+</a>
+
+                
+                
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>微信</span>
+    <div class="qrcode"><img src="/images/WeChat.png" alt="微信"></div>
+</a>
+
+                
+                <!-- Visit https://www.paypal.com/donate/buttons/ to get your donate button -->
+
+<a class="button is-warning donate" onclick="document.getElementById(&#39;paypal-donate-form&#39;).submit()">
+    <span class="icon is-small">
+        <i class="fab fa-paypal"></i>
+    </span>
+    <span>Paypal</span>
+</a>
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" id="paypal-donate-form">
+    <input type="hidden" name="cmd" value="_donations">
+    <input type="hidden" name="business" value="xingkong2000cn@gmail.com">
+    <input type="hidden" name="currency_code" value="USD">
+</form>
+
+                
+        </div>
+    </div>
+</div>
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-5/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">以太坊C++源码解析（五）区块链同步(5)</span>
+            </a>
+        </div>
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-3/">
+                <span class="level-item">以太坊C++源码解析（五）区块链同步(3)</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-3-desktop is-3-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered">
+                <div>
+                    
+                        <img class="image is-128x128 has-mb-6" src="/images/images.jpg" alt="Will Wang">
+                    
+                    
+                    <p class="is-size-4 is-block">
+                        Will Wang
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-block">
+                        Software Engineer
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>China</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        文章
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        20
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        分类
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        1
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        标签
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        1
+                    </p>
+                </div>
+            </div>
+        </nav>
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://github.com/xingkong2014" target="_blank">
+                关注我</a>
+        </div>
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Github" href="https://github.com/xingkong2014">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Facebook" href="https://facebook.com">
+                
+                <i class="fab fa-facebook"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Twitter" href="https://twitter.com">
+                
+                <i class="fab fa-twitter"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Dribbble" href="https://dribbble.com">
+                
+                <i class="fab fa-dribbble"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="RSS" href="/">
+                
+                <i class="fas fa-rss"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                分类
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/categories/以太坊C-源码解析/">
+            <span class="level-start">
+                <span class="level-item">以太坊C++源码解析</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">20</span>
+            </span>
+        </a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            最新文章
+        </h3>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:45:17.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（九）区块头/" class="has-link-black-ter is-size-6">以太坊C++源码解析（九）区块头</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:43:03.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（八）交易队列（二）/" class="has-link-black-ter is-size-6">以太坊C++源码解析（八）交易队列（二）</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:39:44.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（八）交易队列（一）/" class="has-link-black-ter is-size-6">以太坊C++源码解析（八）交易队列（一）</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:36:57.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（七）交易/" class="has-link-black-ter is-size-6">以太坊C++源码解析（七）交易</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-07-04T03:35:17.000Z">2019-07-04</time></div>
+                    <a href="/2019/07/04/以太坊C-源码解析（五）区块链同步-6/" class="has-link-black-ter is-size-6">以太坊C++源码解析（五）区块链同步(6)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+    </div>
+</div>
+
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                标签
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/以太坊-C-源码/">
+                        <span class="tag">以太坊 C++ 源码</span>
+                        <span class="tag is-grey">20</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+        </div>
+    
+</div>
+
+                
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/">
+                
+                    <img src="/images/logo.svg" alt="以太坊C++源码解析（五）区块链同步(4)" height="28">
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2019 Will Wang&nbsp;
+                Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a>
+                
+                </p>
+            </div>
+            <div class="level-end">
+            
+                <div class="field has-addons is-flex-center-mobile has-mt-5-mobile is-flex-wrap is-flex-middle">
+                
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Creative Commons" href="https://creativecommons.org/">
+                        
+                        <i class="fab fa-creative-commons"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/">
+                        
+                        <i class="fab fa-creative-commons-by"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus">
+                        
+                        <i class="fab fa-github"></i>
+                        
+                    </a>
+                </p>
+                
+                </div>
+            
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("zh-CN");</script>
+
+
+    
+    
+    
+    <script src="/js/animation.js"></script>
+    
+
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+    <script src="/js/gallery.js" defer></script>
+    
+
+    
+    
+
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+
+    
+    
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+});
+</script>
+
+    
+    
+
+<a id="back-to-top" title="回到顶端" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/js/back-to-top.js" defer></script>
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+    <script src="/js/clipboard.js" defer></script>
+    
+
+    
+    
+    
+
+
+<script src="/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="想要查找什么...">
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/js/insight.js" defer></script>
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/insight.css">
+    
+</body>
+</html>

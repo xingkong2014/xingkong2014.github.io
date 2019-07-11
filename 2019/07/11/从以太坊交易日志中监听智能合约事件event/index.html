@@ -2,19 +2,24 @@
 <html lang="zh">
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-<title>归档: 2019/7 - 星空工作室</title>
+<title>从以太坊交易日志中监听智能合约事件event - 星空工作室</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-    <meta property="og:type" content="website">
-<meta property="og:title" content="星空工作室">
-<meta property="og:url" content="http://yoursite.com/archives/2019/07/index.html">
+    <meta name="description" content="以太坊智能合约中，有一类特殊的回调函数，没有函数体，以大写字母开头，一般用来记录函数状态，这类回调函数称为事件event。事件event由合约函数调用，web3.js可以轻松监听此类event，并返回需要的数据。在网上搜索到的相关文章都是关于用web3.js来实现监听event的，今天我们就来从c++代码层面来看看怎么实现这个功能。">
+<meta name="keywords" content="以太坊">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从以太坊交易日志中监听智能合约事件event">
+<meta property="og:url" content="http://yoursite.com/2019/07/11/从以太坊交易日志中监听智能合约事件event/index.html">
 <meta property="og:site_name" content="星空工作室">
+<meta property="og:description" content="以太坊智能合约中，有一类特殊的回调函数，没有函数体，以大写字母开头，一般用来记录函数状态，这类回调函数称为事件event。事件event由合约函数调用，web3.js可以轻松监听此类event，并返回需要的数据。在网上搜索到的相关文章都是关于用web3.js来实现监听event的，今天我们就来从c++代码层面来看看怎么实现这个功能。">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/og_image.png">
+<meta property="og:updated_time" content="2019-07-11T07:33:26.403Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="星空工作室">
+<meta name="twitter:title" content="从以太坊交易日志中监听智能合约事件event">
+<meta name="twitter:description" content="以太坊智能合约中，有一类特殊的回调函数，没有函数体，以大写字母开头，一般用来记录函数状态，这类回调函数称为事件event。事件event由合约函数调用，web3.js可以轻松监听此类event，并返回需要的数据。在网上搜索到的相关文章都是关于用web3.js来实现监听event的，今天我们就来从c++代码层面来看看怎么实现这个功能。">
 <meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
 
 
@@ -89,7 +94,7 @@
         <div class="navbar-brand is-flex-center">
             <a class="navbar-item navbar-logo" href="/">
             
-                <img src="/images/logo.svg" alt="星空工作室" height="28">
+                <img src="/images/logo.svg" alt="从以太坊交易日志中监听智能合约事件event" height="28">
             
             </a>
         </div>
@@ -123,229 +128,133 @@
     <section class="section">
         <div class="container">
             <div class="columns">
-                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main">
+                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main"><div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-07-11T06:19:58.000Z">2019-07-11</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/区块链/">区块链</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    7 分钟 读完 (大约 1020 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                从以太坊交易日志中监听智能合约事件event
+            
+        </h1>
+        <div class="content">
+            <p>以太坊智能合约中，有一类特殊的回调函数，没有函数体，以大写字母开头，一般用来记录函数状态，这类回调函数称为事件event。事件event由合约函数调用，web3.js可以轻松监听此类event，并返回需要的数据。在网上搜索到的相关文章都是关于用web3.js来实现监听event的，今天我们就来从c++代码层面来看看怎么实现这个功能。</p>
+<a id="more"></a>
+<p>我们先来看看一个简单的智能合约例子：</p>
+<figure class="highlight plain hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">contract Contract &#123;</span><br><span class="line">    event Incremented(bool indexed odd, uint x, uint y);</span><br><span class="line">    function Contract() &#123;</span><br><span class="line">        x = 69;</span><br><span class="line">        y = 20;</span><br><span class="line">    &#125;</span><br><span class="line">    function inc() &#123;</span><br><span class="line">        ++x;</span><br><span class="line">        ++y;</span><br><span class="line">        Incremented(x % 2 == 0, x, y);</span><br><span class="line">    &#125;</span><br><span class="line">    uint x;</span><br><span class="line">    uint y;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<div class="card widget">
+<p>这个合约只有两个变量x, y，一个函数<code>inc()</code>和一个事件<code>Incremented</code>，如果我们调用<code>Contract</code>中的<code>inc()</code>函数，则事件<code>Incremented</code>会被执行，我们的目的就是监听这个事件。</p>
+<p>首先我们在私有链上来部署这个合约，部署的过程就不赘述了，简单说就是执行一笔交易，交易的data为合约的二进制代码。</p>
+<p>同样调用智能合约的函数也是向智能合约发送一笔交易，将函数以及相关参数放到交易的data中，也就是调用<code>Client::submitTransaction()</code>这个函数，返回值是<code>h256</code>类型，为交易的hash值，也就是交易的id。如果此笔交易在区块链上得到确认，则智能合约中的函数会被执行，函数中的事件会被触发，事件触发的结果记录在交易的日志中。那么我们去哪里找交易的日志呢？<br>当一笔交易得到确认，我们可以根据交易id去区块链上找到该笔交易的收据(receipt)，receipt中记录交易的执行情况。</p>
+<p>执行以下代码可以得到交易收据</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">toJson(m_pClient-&gt;localisedTransactionReceipt(h)).toStyledString();</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>m_pClient</code>是<code>dev::eth::Client</code>类实例，<code>h</code>是交易id。<br>我们执行<code>inc()</code>后，得到的收据内容为</p>
+<figure class="highlight json hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">   <span class="hljs-attr">"blockHash"</span> : <span class="hljs-string">"0x862b329c8f5e8310ed5cc6decc18ccc61a96c984aeb3003627abdd9789bd73d9"</span>,</span><br><span class="line">   <span class="hljs-attr">"blockNumber"</span> : <span class="hljs-number">798</span>,</span><br><span class="line">   <span class="hljs-attr">"contractAddress"</span> : <span class="hljs-string">"0x46f74069282ce80249112a50c5fdea621436c2e7"</span>,</span><br><span class="line">   <span class="hljs-attr">"cumulativeGasUsed"</span> : <span class="hljs-string">"0x85ba"</span>,</span><br><span class="line">   <span class="hljs-attr">"from"</span> : <span class="hljs-string">"0x8fc41de977db1d49cff206ad8b25605e2b63e56e"</span>,</span><br><span class="line">   <span class="hljs-attr">"gasUsed"</span> : <span class="hljs-string">"0x85ba"</span>,</span><br><span class="line">   <span class="hljs-attr">"logs"</span> : [</span><br><span class="line">      &#123;</span><br><span class="line">         <span class="hljs-attr">"address"</span> : <span class="hljs-string">"0x59a1181c37245f8b4d7c7a5cec19d22dd5da4331"</span>,</span><br><span class="line">         <span class="hljs-attr">"blockHash"</span> : <span class="hljs-string">"0x862b329c8f5e8310ed5cc6decc18ccc61a96c984aeb3003627abdd9789bd73d9"</span>,</span><br><span class="line">         <span class="hljs-attr">"blockNumber"</span> : <span class="hljs-number">798</span>,</span><br><span class="line">         <span class="hljs-attr">"data"</span> : <span class="hljs-string">"0x00000000000000000000000000000000000000000000000000000000000000460000000000000000000000000000000000000000000000000000000000000015"</span>,</span><br><span class="line">         <span class="hljs-attr">"logIndex"</span> : <span class="hljs-number">0</span>,</span><br><span class="line">         <span class="hljs-attr">"polarity"</span> : <span class="hljs-literal">false</span>,</span><br><span class="line">         <span class="hljs-attr">"topics"</span> : [</span><br><span class="line">            <span class="hljs-string">"0x9b44895fef8929cca514f54bb4c52d35b5f403b960a39478ed7f4408e46eb69e"</span>,</span><br><span class="line">            <span class="hljs-string">"0x0000000000000000000000000000000000000000000000000000000000000001"</span></span><br><span class="line">         ],</span><br><span class="line">         <span class="hljs-attr">"transactionHash"</span> : <span class="hljs-string">"0xc5659816ee1239f48cba7d99ea7defeb7b927dff8a9d074f618aa308fb1e9eb4"</span>,</span><br><span class="line">         <span class="hljs-attr">"transactionIndex"</span> : <span class="hljs-number">0</span>,</span><br><span class="line">         <span class="hljs-attr">"type"</span> : <span class="hljs-string">"mined"</span></span><br><span class="line">      &#125;</span><br><span class="line">   ],</span><br><span class="line">   <span class="hljs-attr">"logsBloom"</span> : <span class="hljs-string">"0x00000000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000010000000040000000000000800000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004000000000008000000000000000000000000000000000000000000000000000040000020000000000000000000000000000000000000000000000000000000000000"</span>,</span><br><span class="line">   <span class="hljs-attr">"stateRoot"</span> : <span class="hljs-string">"0x2ff5b94c86fb021d6c354f827278ec48bd037a9b3981253f383717fe8f022eda"</span>,</span><br><span class="line">   <span class="hljs-attr">"to"</span> : <span class="hljs-string">"0x59a1181c37245f8b4d7c7a5cec19d22dd5da4331"</span>,</span><br><span class="line">   <span class="hljs-attr">"transactionHash"</span> : <span class="hljs-string">"0xc5659816ee1239f48cba7d99ea7defeb7b927dff8a9d074f618aa308fb1e9eb4"</span>,</span><br><span class="line">   <span class="hljs-attr">"transactionIndex"</span> : <span class="hljs-number">0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们要从日志从寻找需要的东西，因此我们关注<code>logs</code>这部分内容。再看<code>topics</code>，这是一个数组，第一行的内容应该为事件名称的hash值，我们来计算一下：</p>
+<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">auto</span> sh = dev::sha3(<span class="hljs-string">"Incremented(bool,uint256,uint256)"</span>);</span><br><span class="line"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"0x"</span> &lt;&lt; sh.hex() &lt;&lt; <span class="hljs-built_in">std</span>::<span class="hljs-built_in">endl</span>;</span><br></pre></td></tr></table></figure>
+
+<p>结果正是<code>0x9b44895fef8929cca514f54bb4c52d35b5f403b960a39478ed7f4408e46eb69e</code>，因此我们就知道这个事件得到了触发。<br>再来看这个事件的参数，第一个参数是x % 2 == 0的值，应该true, 也就是1，正是<code>topics</code>中第二行的值，注意到合约代码中<code>Incremented</code>第一个参数是<code>indexed</code>的，也就是这个标志的参数都会记录在<code>topics</code>的第2-n行中。那么没有这个标志的参数在哪呢？注意到上面还有个<code>data</code>，内容为<code>0x00000000000000000000000000000000000000000000000000000000000000460000000000000000000000000000000000000000000000000000000000000015</code>，这个可以分为两部分：<br><code>0x0000000000000000000000000000000000000000000000000000000000000046</code>和<code>0x0000000000000000000000000000000000000000000000000000000000000015</code>，正是后面两个参数x和y的值，因此通过解析交易收据receipt，我们就能够得到事件触发的完整信息，也就是能够监听这个事件了。</p>
+
+        </div>
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/以太坊/">以太坊</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+<div class="card">
     <div class="card-content">
-        <h3 class="tag is-link">
-        七月 2019
-        </h3>
-        <div class="timeline">
-        
-            <article class="media">
+        <h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3>
+        <div class="buttons is-centered">
+            
                 
-                <div class="media-content">
-                    <div class="content">
-                        <time class="has-text-grey is-size-7 is-block is-uppercase" datetime="2019-07-11T06:19:58.000Z">2019-07-11</time>
-                        <a href="/2019/07/11/从以太坊交易日志中监听智能合约事件event/" class="has-link-black-ter is-size-6">从以太坊交易日志中监听智能合约事件event</a>
-                        <div class="level article-meta is-mobile">
-                            <div class="level-left">
-                                
-                                <div class="level-item is-size-7 is-uppercase">
-                                <a class="has-link-grey -link" href="/categories/区块链/">区块链</a>
-                                </div>
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        
-            <article class="media">
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>支付宝</span>
+    <div class="qrcode"><img src="/images/Allipay.jpg" alt="支付宝"></div>
+</a>
+
                 
-                <div class="media-content">
-                    <div class="content">
-                        <time class="has-text-grey is-size-7 is-block is-uppercase" datetime="2019-07-11T06:02:50.000Z">2019-07-11</time>
-                        <a href="/2019/07/11/明明白白以太坊Merkle-Patricia-Trie/" class="has-link-black-ter is-size-6">明明白白以太坊Merkle Patricia Trie</a>
-                        <div class="level article-meta is-mobile">
-                            <div class="level-left">
-                                
-                                <div class="level-item is-size-7 is-uppercase">
-                                <a class="has-link-grey -link" href="/categories/区块链/">区块链</a>
-                                </div>
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        
-            <article class="media">
                 
-                <div class="media-content">
-                    <div class="content">
-                        <time class="has-text-grey is-size-7 is-block is-uppercase" datetime="2019-07-04T03:45:17.000Z">2019-07-04</time>
-                        <a href="/2019/07/04/以太坊C-源码解析（九）区块头/" class="has-link-black-ter is-size-6">以太坊C++源码解析（九）区块头</a>
-                        <div class="level article-meta is-mobile">
-                            <div class="level-left">
-                                
-                                <div class="level-item is-size-7 is-uppercase">
-                                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                                </div>
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        
-            <article class="media">
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>微信</span>
+    <div class="qrcode"><img src="/images/WeChat.png" alt="微信"></div>
+</a>
+
                 
-                <div class="media-content">
-                    <div class="content">
-                        <time class="has-text-grey is-size-7 is-block is-uppercase" datetime="2019-07-04T03:43:03.000Z">2019-07-04</time>
-                        <a href="/2019/07/04/以太坊C-源码解析（八）交易队列（二）/" class="has-link-black-ter is-size-6">以太坊C++源码解析（八）交易队列（二）</a>
-                        <div class="level article-meta is-mobile">
-                            <div class="level-left">
-                                
-                                <div class="level-item is-size-7 is-uppercase">
-                                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                                </div>
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        
-            <article class="media">
+                <!-- Visit https://www.paypal.com/donate/buttons/ to get your donate button -->
+
+<a class="button is-warning donate" onclick="document.getElementById(&#39;paypal-donate-form&#39;).submit()">
+    <span class="icon is-small">
+        <i class="fab fa-paypal"></i>
+    </span>
+    <span>Paypal</span>
+</a>
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" id="paypal-donate-form">
+    <input type="hidden" name="cmd" value="_donations">
+    <input type="hidden" name="business" value="xingkong2000cn@gmail.com">
+    <input type="hidden" name="currency_code" value="USD">
+</form>
+
                 
-                <div class="media-content">
-                    <div class="content">
-                        <time class="has-text-grey is-size-7 is-block is-uppercase" datetime="2019-07-04T03:39:44.000Z">2019-07-04</time>
-                        <a href="/2019/07/04/以太坊C-源码解析（八）交易队列（一）/" class="has-link-black-ter is-size-6">以太坊C++源码解析（八）交易队列（一）</a>
-                        <div class="level article-meta is-mobile">
-                            <div class="level-left">
-                                
-                                <div class="level-item is-size-7 is-uppercase">
-                                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                                </div>
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        
-            <article class="media">
-                
-                <div class="media-content">
-                    <div class="content">
-                        <time class="has-text-grey is-size-7 is-block is-uppercase" datetime="2019-07-04T03:36:57.000Z">2019-07-04</time>
-                        <a href="/2019/07/04/以太坊C-源码解析（七）交易/" class="has-link-black-ter is-size-6">以太坊C++源码解析（七）交易</a>
-                        <div class="level article-meta is-mobile">
-                            <div class="level-left">
-                                
-                                <div class="level-item is-size-7 is-uppercase">
-                                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                                </div>
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        
-            <article class="media">
-                
-                <div class="media-content">
-                    <div class="content">
-                        <time class="has-text-grey is-size-7 is-block is-uppercase" datetime="2019-07-04T03:35:17.000Z">2019-07-04</time>
-                        <a href="/2019/07/04/以太坊C-源码解析（五）区块链同步-6/" class="has-link-black-ter is-size-6">以太坊C++源码解析（五）区块链同步(6)</a>
-                        <div class="level article-meta is-mobile">
-                            <div class="level-left">
-                                
-                                <div class="level-item is-size-7 is-uppercase">
-                                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                                </div>
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        
-            <article class="media">
-                
-                <div class="media-content">
-                    <div class="content">
-                        <time class="has-text-grey is-size-7 is-block is-uppercase" datetime="2019-07-04T03:30:31.000Z">2019-07-04</time>
-                        <a href="/2019/07/04/以太坊C-源码解析（五）区块链同步-5/" class="has-link-black-ter is-size-6">以太坊C++源码解析（五）区块链同步(5)</a>
-                        <div class="level article-meta is-mobile">
-                            <div class="level-left">
-                                
-                                <div class="level-item is-size-7 is-uppercase">
-                                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                                </div>
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        
-            <article class="media">
-                
-                <div class="media-content">
-                    <div class="content">
-                        <time class="has-text-grey is-size-7 is-block is-uppercase" datetime="2019-07-04T03:27:48.000Z">2019-07-04</time>
-                        <a href="/2019/07/04/以太坊C-源码解析（五）区块链同步-4/" class="has-link-black-ter is-size-6">以太坊C++源码解析（五）区块链同步(4)</a>
-                        <div class="level article-meta is-mobile">
-                            <div class="level-left">
-                                
-                                <div class="level-item is-size-7 is-uppercase">
-                                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                                </div>
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        
-            <article class="media">
-                
-                <div class="media-content">
-                    <div class="content">
-                        <time class="has-text-grey is-size-7 is-block is-uppercase" datetime="2019-07-04T03:10:12.000Z">2019-07-04</time>
-                        <a href="/2019/07/04/以太坊C-源码解析（五）区块链同步-3/" class="has-link-black-ter is-size-6">以太坊C++源码解析（五）区块链同步(3)</a>
-                        <div class="level article-meta is-mobile">
-                            <div class="level-left">
-                                
-                                <div class="level-item is-size-7 is-uppercase">
-                                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
-                                </div>
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        
         </div>
     </div>
 </div>
 
 
 
-    
 <div class="card card-transparent">
-    <nav class="pagination is-centered" role="navigation" aria-label="pagination">
-        <div class="pagination-previous is-invisible is-hidden-mobile">
-            <a class="is-flex-grow has-text-black-ter" href="/archives/2019/07/page/0/">上一页</a>
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/07/11/明明白白以太坊Merkle-Patricia-Trie/">
+                <span class="level-item">明明白白以太坊Merkle Patricia Trie</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
         </div>
-        <div class="pagination-next">
-            <a class="is-flex-grow has-text-black-ter" href="/archives/2019/07/page/2/">下一页</a>
-        </div>
-        <ul class="pagination-list is-hidden-mobile">
-            
-            <li><a class="pagination-link is-current" href="/archives/2019/07/">1</a></li>
-            
-            <li><a class="pagination-link has-text-black-ter" href="/archives/2019/07/page/2/">2</a></li>
-            
-        </ul>
-    </nav>
+        
+    </div>
 </div>
+
+
 </div>
                 
 
@@ -609,7 +518,7 @@
             <div class="level-start has-text-centered-mobile">
                 <a class="footer-logo is-block has-mb-6" href="/">
                 
-                    <img src="/images/logo.svg" alt="星空工作室" height="28">
+                    <img src="/images/logo.svg" alt="从以太坊交易日志中监听智能合约事件event" height="28">
                 
                 </a>
                 <p class="is-size-7">

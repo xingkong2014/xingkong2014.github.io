@@ -2,24 +2,24 @@
 <html lang="zh">
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-<title>以太坊C++源码解析（七）交易 - 星空工作室</title>
+<title>明明白白以太坊Merkle Patricia Trie - 星空工作室</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-    <meta name="description" content="以太坊交易类是Transaction，但是这个类几乎没有什么代码，主要代码都在父类TransactionBase中，因此这个类是我们研究的重点。">
-<meta name="keywords" content="以太坊 C++ 源码">
+    <meta name="description" content="在以太坊数据结构中，Merkle Patricia Trie始终是个绕不过去的坎，世界状态，交易，交易收据等都是以这种树的形式存储在区块链数据库中，并将树root hash保存在区块头里。可以说不弄懂这种树的原理就没有办法真正明白以太坊的数据存储方式。">
+<meta name="keywords" content="以太坊">
 <meta property="og:type" content="article">
-<meta property="og:title" content="以太坊C++源码解析（七）交易">
-<meta property="og:url" content="http://yoursite.com/2019/07/04/以太坊C-源码解析（七）交易/index.html">
+<meta property="og:title" content="明明白白以太坊Merkle Patricia Trie">
+<meta property="og:url" content="http://yoursite.com/2019/07/11/明明白白以太坊Merkle-Patricia-Trie/index.html">
 <meta property="og:site_name" content="星空工作室">
-<meta property="og:description" content="以太坊交易类是Transaction，但是这个类几乎没有什么代码，主要代码都在父类TransactionBase中，因此这个类是我们研究的重点。">
+<meta property="og:description" content="在以太坊数据结构中，Merkle Patricia Trie始终是个绕不过去的坎，世界状态，交易，交易收据等都是以这种树的形式存储在区块链数据库中，并将树root hash保存在区块头里。可以说不弄懂这种树的原理就没有办法真正明白以太坊的数据存储方式。">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/og_image.png">
-<meta property="og:updated_time" content="2019-07-04T03:39:15.274Z">
+<meta property="og:updated_time" content="2019-07-11T06:16:14.114Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="以太坊C++源码解析（七）交易">
-<meta name="twitter:description" content="以太坊交易类是Transaction，但是这个类几乎没有什么代码，主要代码都在父类TransactionBase中，因此这个类是我们研究的重点。">
+<meta name="twitter:title" content="明明白白以太坊Merkle Patricia Trie">
+<meta name="twitter:description" content="在以太坊数据结构中，Merkle Patricia Trie始终是个绕不过去的坎，世界状态，交易，交易收据等都是以这种树的形式存储在区块链数据库中，并将树root hash保存在区块头里。可以说不弄懂这种树的原理就没有办法真正明白以太坊的数据存储方式。">
 <meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
 
 
@@ -94,7 +94,7 @@
         <div class="navbar-brand is-flex-center">
             <a class="navbar-item navbar-logo" href="/">
             
-                <img src="/images/logo.svg" alt="以太坊C++源码解析（七）交易" height="28">
+                <img src="/images/logo.svg" alt="明明白白以太坊Merkle Patricia Trie" height="28">
             
             </a>
         </div>
@@ -134,17 +134,17 @@
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
             <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-07-04T03:36:57.000Z">2019-07-04</time>
+                <time class="level-item has-text-grey" datetime="2019-07-11T06:02:50.000Z">2019-07-11</time>
                 
                 <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/以太坊C-源码解析/">以太坊C++源码解析</a>
+                <a class="has-link-grey -link" href="/categories/区块链/">区块链</a>
                 </div>
                 
                 
                 <span class="level-item has-text-grey">
                     
                     
-                    8 分钟 读完 (大约 1195 个字)
+                    15 分钟 读完 (大约 2267 个字)
                 </span>
                 
                 
@@ -153,47 +153,101 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                以太坊C++源码解析（七）交易
+                明明白白以太坊Merkle Patricia Trie
             
         </h1>
         <div class="content">
-            <p>以太坊交易类是<code>Transaction</code>，但是这个类几乎没有什么代码，主要代码都在父类<code>TransactionBase</code>中，因此这个类是我们研究的重点。</p>
+            <p>在以太坊数据结构中，<code>Merkle Patricia Trie</code>始终是个绕不过去的坎，世界状态，交易，交易收据等都是以这种树的形式存储在区块链数据库中，并将树<code>root hash</code>保存在区块头里。可以说不弄懂这种树的原理就没有办法真正明白以太坊的数据存储方式。</p>
 <a id="more"></a>
-<h1 id="交易的主要数据"><a href="#交易的主要数据" class="headerlink" title="交易的主要数据"></a>交易的主要数据</h1><p><code>TransactionBase</code>类位于<code>libethcore\TransactionBase.h/cpp</code>中，里面有几个重要的成员：</p>
-<ul>
-<li>u256 m_nonce;<br>这个是交易的nonce，整数，记录交易发送者的发送次数，从0开始，每发送一次nonce加1，主要是用来防止重放攻击的。</li>
-<li>u256 m_value;<br>交易的以太币数量，单位为<strong>wei</strong>，注意这个值可以为0。</li>
-<li>Address m_receiveAddress;<br>交易接收者的以太坊地址</li>
-<li>u256 m_gasPrice;<br>发送者愿意支付的<code>gas price</code>，默认为20,000,000,000wei，也就是20Gwei。这个值越大，交易被确认的速度越快。</li>
-<li>u256 m_gas;<br>发送者愿意支付的gas值，如果为普通交易，gas值固定为21000，如果是智能合约交易，则gas值大于21000。这个值实际上是<code>gas limit</code>，值必须<strong>大于等于</strong>实际消耗的gas，小于的话会直接被区块链拒绝，大于没有关系，因为交易完成后多出来的钱会退回发送者账户。<br>交易费=m_gas * m_gasPrice。</li>
-<li>bytes m_data;<br>这个是创建智能合约交易时附带的交易编码，对于普通交易这个值为空。</li>
-<li>boost::optional<signaturestruct> m_vrs;<br>交易的签名</signaturestruct></li>
-</ul>
-<p>以上是一个交易必须的成员，有人可能会注意到没有发送者的信息，实际上发送者信息隐藏在<code>m_vrs</code>中，<code>m_vrs</code>可以反推出发送者的公钥，从而得到发送者地址。</p>
-<h1 id="交易的分类"><a href="#交易的分类" class="headerlink" title="交易的分类"></a>交易的分类</h1><ol>
-<li>普通交易<br>普通交易是用来交易以太币的，<code>m_gas</code>值为21000，<code>m_data</code>值为空，<code>m_receiveAddress</code>值不为空，<code>m_value</code>值通常不为0</li>
-<li>智能合约交易<br>智能合约交易又分为两种<br>a.  创建智能合约交易<br>这个交易用来创建一个智能合约，<code>m_data</code>值不为空，<code>m_receiveAddress</code>为空，<code>m_value</code>为0<br>b. 普通智能合约交易<br>这个通常用来做代币交易，<code>m_data</code>值不为空，<code>m_receiveAddress</code>为智能合约地址。<h1 id="交易的签名"><a href="#交易的签名" class="headerlink" title="交易的签名"></a>交易的签名</h1>一个交易被发出前必须由发送者用自身的私钥进行签名。 这里因为<code>EIP155</code>的存在，情况又有点复杂。<blockquote>
-<p>关于<code>EIP155</code>大家可以参考<a href="https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md" target="_blank" rel="noopener">eip-155.md</a><br>简单说就是在<code>EIP155</code>之前，交易签名的内容包括<code>m_nonce</code>，<code>m_value</code>，<code>m_receiveAddress</code>，<code>m_gasPrice</code>，<code>m_gas</code>和<code>m_data</code>这六项，<code>EIP155</code>之后，签名内容增加了<code>m_vrs</code>，其中<code>v</code>值设为1，<code>r</code>和<code>s</code>值设为0<br><img src="https://upload-images.jianshu.io/upload_images/1603745-bdd551f923a665b5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="EIP155"></p>
+<blockquote>
+<p>大家都知道在以太坊cpp版本和go版本采用的是<code>levelDb</code>这种数据库，这种数据库存储的是<code>[key, value]</code>对。而实际上以太坊存储的数据结构也是<code>[key, value</code>]对，以状态<code>state</code>为例，<code>key</code>是<code>address</code>，<code>value</code>是<code>[nonce, balance, storageRoot, codeHash]</code>。那么问题来了，以太坊为什么不直接按<code>[key, value</code>来存储数据，而要费那么大劲用树型结构来存储呢？<br>答案是为了安全性。</p>
 </blockquote>
-</li>
+<p>而为了引进<code>Merkle Patricia Trie</code>，我们要先来看一种简单的树。</p>
+<h1 id="Radix-Trees"><a href="#Radix-Trees" class="headerlink" title="Radix Trees"></a>Radix Trees</h1><p>中文翻译为前缀树，这是一种用来查询的数据结构。每次遍历<code>key</code>的一个字符，直到找到对应的值。<br>比如有下面几个数据：<code>(&#39;do&#39;, &#39;verb&#39;), (&#39;dog&#39;, &#39;puppy&#39;), (&#39;doge&#39;, &#39;coin&#39;), (&#39;horse&#39;, &#39;stallion&#39;)</code>，存储在<code>Radix Trees</code>里是这样的：<br><img src="https://i.loli.net/2019/07/11/5d26d38ed730846231.png" alt="Radix Trees"><br>其中圆圈里是值，<code>key</code>的字符组成查询路径，路径是<code>doge</code>时的查询过程为<code>d-&gt;o-&gt;g-&gt;e</code>，需要查询4次，而路径为<code>horse</code>时查询需要5次，因此这种树查询虽然可行，但是效率不高。我们后面可以看到以太坊是怎么解决这个问题的。<br>解决了查询，然后为了安全性，我们引入了<code>Merkle Trees</code>。</p>
+<h1 id="Merkle-Trees"><a href="#Merkle-Trees" class="headerlink" title="Merkle Trees"></a>Merkle Trees</h1><p><code>Merkle Trees</code>又名<code>Hash Trees</code>，数据都存储在叶节点，父节点则存储叶节点的<code>hash</code>值，一级一级向上， 直到根节点。因此如果修改了叶节点的数据，则父节点<code>hash</code>值就会改变，根节点<code>hash</code>值也会改变，从而很快就可以验证数据是否正确。<br><img src="https://i.loli.net/2019/07/11/5d26d3d05572730495.jpg" alt="Merkle Trees"></p>
+<blockquote>
+<p>保证数据不被篡改，这是区块链技术的基础。</p>
+</blockquote>
+<h1 id="Merkle-Patricia-Trie"><a href="#Merkle-Patricia-Trie" class="headerlink" title="Merkle Patricia Trie"></a>Merkle Patricia Trie</h1><p>以太坊<code>Merkle Patricia Trie</code>是结合了上面两种树的数据结构，兼顾了查询和安全性。</p>
+<h2 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h2><p>前面不是说过<code>Radix Trees</code>查询效率不行吗？那就进行优化，将路径里相同部分提取出来，作为共同路径，从而减少树的高度，提供查询效率。<br>还是用上面的例子，合并路径后的树变为：<br><img src="https://i.loli.net/2019/07/11/5d26d410c922c26933.png" alt="Modified Radix Trees"><br>可以看到将<code>do</code>和<code>horse</code>作为共同路径后，查询<code>doge</code>的路径变成了<code>do-&gt;g-&gt;e</code>，只需要查询3次，而<code>horse</code>只需要查询一次就够了。</p>
+<h2 id="安全性"><a href="#安全性" class="headerlink" title="安全性"></a>安全性</h2><p>节点与节点之间的联系不再采用内存指针的方式，而是采用<code>hash</code>值的方式，比如上图中的<code>puppy</code>这个值的节点存储执行下一个节点的<code>hash</code>值，然后将这个<code>hash</code>值与实际节点对应关系存储在<code>[key, value]</code>的数据库中。当有人篡改<code>coin</code>节点值时，也必须要修改<code>puppy</code>节点里的<code>hash</code>值，然后<code>verb</code>节点里<code>hash</code>值也需要修改，直到根节点，所以我们只需要验证根节点的<code>hash</code>值，就知道底层数据是否正确。</p>
+<h2 id="节点类型"><a href="#节点类型" class="headerlink" title="节点类型"></a>节点类型</h2><p>按功能不同，存在4种节点：</p>
+<ol>
+<li>NULL节点</li>
+<li>分支节点，含有17项数据，[ v0 … v15, vt ]</li>
+<li>叶节点，含有2项数据，[ encodedPath, value ]</li>
+<li>扩展节点，含有两项数据，[ encodedPath, key ]</li>
 </ol>
-<p>在<code>TransactionBase</code>类中有一个成员<code>int m_chainId = -4;</code>来区分是否采用<code>EIP155</code>，-4表示不采用，1表示采用。<br>我们来看具体代码：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> TransactionBase::sign(Secret <span class="hljs-keyword">const</span>&amp; _priv)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">auto</span> sig = dev::sign(_priv, sha3(WithoutSignature));</span><br><span class="line">    SignatureStruct sigStruct = *(SignatureStruct <span class="hljs-keyword">const</span>*)&amp;sig;</span><br><span class="line">    <span class="hljs-keyword">if</span> (sigStruct.isValid())</span><br><span class="line">        m_vrs = sigStruct;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>Merkle Patricia Trie</code>查询路径是以<code>nibble</code>(半个字节）作为单位。<br>分支节点中的前16项数据v0-v15分别对应16进制的0-0xF，是用<code>nibble</code>作为索引，可以快速进行查询，比如路径<code>nibble</code>是0xa，则取分支节点0xa位置的值。分支节点对应图上的分叉节点。<br>叶节点和扩展节点都是两项，只是<code>value</code>不同，那么怎么区分他们呢？<br>以太坊是采用添加前缀的方式，根据节点类型和路径长度是否是奇偶数来添加不同的前缀。<br>有一个对应表：</p>
+<table>
+<thead>
+<tr>
+<th>hex char</th>
+<th>bits</th>
+<th>node type partial</th>
+<th>path length</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>0000</td>
+<td>extension</td>
+<td>even(偶数)</td>
+</tr>
+<tr>
+<td>1</td>
+<td>0001</td>
+<td>extension</td>
+<td>odd(奇数)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>0010</td>
+<td>terminating (leaf)</td>
+<td>even(偶数)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>0011</td>
+<td>terminating (leaf)</td>
+<td>odd(奇数)</td>
+</tr>
+</tbody></table>
+<p>可以看到前缀为0或者1时表示扩展节点，2或者3时表示叶节点。<br>另外前缀为0或者2时，需要变更为00或20.</p>
+<h2 id="例子1"><a href="#例子1" class="headerlink" title="例子1"></a>例子1</h2><p>我们用一个例子来说明：<br><img src="https://i.loli.net/2019/07/11/5d26d41137cd267151.png" alt="0_t4ziOSL-71LPnkjE.png"><br>图中右上角有4个<code>[key, value]</code>对，我们要存储这4对数据。<code>key</code>每个方框里是一个<code>nibble</code>。</p>
+<ol>
+<li>从这四个路径中可以提取出公共路径<code>a7</code>，因此可以建立一个扩展节点A, [00 a7, hashB]，<code>a7</code>是一个偶数长度的扩展节点，前缀为00，<code>hashB</code>是下一个节点B的<code>hash</code>值。</li>
+<li>下一个<code>nibble</code>取值有1, 7, f，因此节点B为一个分支节点，其中index为1，7，f的位置保存下一个节点的<code>hash</code>值，<code>value</code>为空。这个分支节点为：[ EMPTY, hashC, EMPTY, EMPTY, EMPTY, EMPTY,  EMPTY, hashD, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, hashE, value]。<br><code>hashC, hashD, hashE</code>为下一层节点的<code>hash</code>值</li>
+<li>因为出现了分支，我们来看1这个分支，这个分支后没有分支，所以后续的1355可以作为一个叶节点，为[20 1355, 45.0ETH]，这里1355为偶数长度的叶节点，所以前缀为20。</li>
+<li>再来看7这个分支，后续又有d3这共同路径，因此创建一个扩展节点D，[00 d3, hashF]，’d3’是一个偶数长度的扩展节点，前缀为00，<code>hashF</code>是下一个节点F的<code>hash</code>值。</li>
+<li><code>d3</code>之后又出现分支3和9，因此又出现一个分支节点，其中index为3和9的位置保存下一个节点的<code>hash</code>值，<code>value</code>为空。这个节点为：[ EMPTY, EMPTY, EMPTY, hashG, EMPTY, EMPTY,  EMPTY, EMPTY, EMPTY, hashH, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, value]</li>
+<li>剩下的就是两个叶节点，分别为[37, 1.00WEI]和[37, 0.12ETH]，这两个都是奇数长度的叶节点，因此前缀为3。</li>
+<li>其他节点可以按同样的方法分析。</li>
+</ol>
+<h2 id="例子2"><a href="#例子2" class="headerlink" title="例子2"></a>例子2</h2><p>我们再用前面的<code>(&#39;do&#39;, &#39;verb&#39;), (&#39;dog&#39;, &#39;puppy&#39;), (&#39;doge&#39;, &#39;coin&#39;), (&#39;horse&#39;, &#39;stallion&#39;)</code>做例子来说明分析过程。<br>由于是采用<code>nibble</code>作为路径单位，所以先将路径和值都写为字节形式：</p>
+<figure class="highlight plain hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;64 6f&gt; : &apos;verb&apos;</span><br><span class="line">&lt;64 6f 67&gt; : &apos;puppy&apos;</span><br><span class="line">&lt;64 6f 67 65&gt; : &apos;coin&apos;</span><br><span class="line">&lt;68 6f 72 73 65&gt; : &apos;stallion&apos;</span><br></pre></td></tr></table></figure>
 
-<p>这是创建交易时候的代码，<code>Secret const&amp; _priv</code>为发送者的私钥，最重要的是这句：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">auto</span> sig = dev::sign(_priv, sha3(WithoutSignature));</span><br></pre></td></tr></table></figure>
+<p>那么在数据库中存储形式为：</p>
+<figure class="highlight plain hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">rootHash: [ &lt;16&gt;, hashA ]</span><br><span class="line">hashA:    [ &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, hashB, &lt;&gt;, &lt;&gt;, &lt;&gt;, hashC, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt; ]</span><br><span class="line">hashC:    [ &lt;20 6f 72 73 65&gt;, &apos;stallion&apos; ]</span><br><span class="line">hashB:    [ &lt;00 6f&gt;, hashD ]</span><br><span class="line">hashD:    [ &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, hashE, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &apos;verb&apos; ]</span><br><span class="line">hashE:    [ &lt;17&gt;, hashF ]</span><br><span class="line">hashF:    [ &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, hashG, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &apos;puppy&apos; ]</span><br><span class="line">hashG:    [ &lt;35&gt;, &apos;coin&apos; ]</span><br></pre></td></tr></table></figure>
 
-<p>这句代码又可以分为两句：</p>
-<ul>
-<li>sha3(WithoutSignature)<br>用来对交易数据进行hash运算，这里的交易数据就要区分<code>EIP155</code>了，如果是非<code>EIP155</code>就需要对六项数据做hash，否则需要对九项数据做hash。</li>
-<li>dev::sign(_priv, hash值)<br>对hash结果做签名<br>我们先来看看hash运算：<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">h256 TransactionBase::sha3(IncludeSignature _sig) <span class="hljs-keyword">const</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (_sig == WithSignature &amp;&amp; m_hashWith)</span><br><span class="line">        <span class="hljs-keyword">return</span> m_hashWith;</span><br><span class="line"></span><br><span class="line">    RLPStream s;</span><br><span class="line">    streamRLP(s, _sig, m_chainId &gt; <span class="hljs-number">0</span> &amp;&amp; _sig == WithoutSignature);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">auto</span> ret = dev::sha3(s.out());</span><br><span class="line">    <span class="hljs-keyword">if</span> (_sig == WithSignature)</span><br><span class="line">        m_hashWith = ret;</span><br><span class="line">    <span class="hljs-keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-</li>
-</ul>
-<p>可见这里是对交易数据先编码成<code>RLP</code>，然后再用<code>dev::sha3()</code>做运算。<br>关键在<code>streamRLP()</code>函数中：</p>
-<figure class="highlight c++ hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span> TransactionBase::streamRLP(RLPStream&amp; _s, IncludeSignature _sig, <span class="hljs-keyword">bool</span> _forEip155hash) <span class="hljs-keyword">const</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (m_type == NullTransaction)</span><br><span class="line">        <span class="hljs-keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    _s.appendList((_sig || _forEip155hash ? <span class="hljs-number">3</span> : <span class="hljs-number">0</span>) + <span class="hljs-number">6</span>);</span><br><span class="line">    _s &lt;&lt; m_nonce &lt;&lt; m_gasPrice &lt;&lt; m_gas;</span><br><span class="line">    <span class="hljs-keyword">if</span> (m_type == MessageCall)</span><br><span class="line">        _s &lt;&lt; m_receiveAddress;</span><br><span class="line">    <span class="hljs-keyword">else</span></span><br><span class="line">        _s &lt;&lt; <span class="hljs-string">""</span>;</span><br><span class="line">    _s &lt;&lt; m_value &lt;&lt; m_data;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">if</span> (_sig)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="hljs-keyword">if</span> (!m_vrs)</span><br><span class="line">            BOOST_THROW_EXCEPTION(TransactionIsUnsigned());</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">if</span> (hasZeroSignature())</span><br><span class="line">            _s &lt;&lt; m_chainId;</span><br><span class="line">        <span class="hljs-keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="hljs-keyword">int</span> <span class="hljs-keyword">const</span> vOffset = m_chainId * <span class="hljs-number">2</span> + <span class="hljs-number">35</span>;</span><br><span class="line">            _s &lt;&lt; (m_vrs-&gt;v + vOffset);</span><br><span class="line">        &#125;</span><br><span class="line">        _s &lt;&lt; (u256)m_vrs-&gt;r &lt;&lt; (u256)m_vrs-&gt;s;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (_forEip155hash)</span><br><span class="line">        _s &lt;&lt; m_chainId &lt;&lt; <span class="hljs-number">0</span> &lt;&lt; <span class="hljs-number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这部分代码比较简单，<code>m_type</code>为<code>MessageCall</code>表示非创建合约交易，这时的<code>m_receiveAddress</code>值是有效的。<code>_forEip155hash</code>表示是否采用<code>EIP155</code>，<code>m_chainId</code>默认为-4，所以不采用，因此这个stream里编码的值只有上面那六项。<br><code>dev::sign()</code>签名算法就不贴出来了，有兴趣的可以自己去看，都是一些算法。</p>
+<p>我们来模拟一下真实的查询过程，假如我们要查询<code>doge</code>这个<code>key</code>对应的值是多少。</p>
+<ol>
+<li><code>rootHash</code>已知(存储在区块头中)，那么从<code>levelDb</code>中读出<code>key</code>为<code>rootHash</code>的值，也就是<code>[ &lt;16&gt;, hashA ]</code>，这是一个扩展节点，路径为6，剩下路径为4,6,f,6,7,6,5，并得到下一个节点<code>hashA</code></li>
+<li>在<code>levelDb</code>中读出<code>key</code>为<code>hashA</code>的值，也就是 [ &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, hashB, &lt;&gt;, &lt;&gt;, &lt;&gt;, hashC, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt; ]，<code>nibble</code>为4，在位置4读出下一个节点<code>hashB</code>，剩余路径为6,f,6,7,6,5</li>
+<li>在<code>levelDb</code>中读出<code>key</code>为<code>hashB</code>的值，也就是[ &lt;00 6f&gt;, hashD ]，这是一个路径为6f的扩展节点，因此剩余路径为6,7,6,5，并得到下一个节点<code>hashD</code></li>
+<li>在<code>levelDb</code>中读出<code>key</code>为<code>hashD</code>的值，也就是 [ &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, hashE, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, ‘verb’ ]，<code>nibble</code>为6，在位置6读出下一个节点<code>hashE</code>，剩余路径为7,6,5</li>
+<li>在<code>levelDb</code>中读出<code>key</code>为<code>hashE</code>的值，也就是 [ &lt;17&gt;, hashF ]，这是一个路径为7的扩展节点，因此剩余路径为65，并得到下一个节点<code>hashF</code></li>
+<li>在<code>levelDb</code>中读出<code>key</code>为<code>hashF</code>的值，也就是[ &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, hashG, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, &lt;&gt;, ‘puppy’ ]，<code>nibble</code>为6，在位置6读出下一个节点<code>hashG</code>，剩余路径为5</li>
+<li>在<code>levelDb</code>中读出<code>key</code>为<code>hashG</code>的值，也就是[ &lt;35&gt;, ‘coin’ ]，这是一个路径为5的叶节点，正好和我们的剩余路径吻合，因此我们就得到了最终的值<code>coin</code>。</li>
+</ol>
+<p>可见以太坊为了安全性真的增加了不少复杂性，降低了效率。</p>
+<h2 id="以太坊中的应用"><a href="#以太坊中的应用" class="headerlink" title="以太坊中的应用"></a>以太坊中的应用</h2><p>以太坊中实际情况还要复杂，数据还需要通过RLP编码。</p>
+<ol>
+<li>State Trie(世界状态树)<br>路径是<code>sha3(ethereumAddress)</code>，<code>value</code>是<code>rlp([nonce,balance,storageRoot,codeHash])</code></li>
+<li>Transactions Trie(交易树)<br>路径是<code>rlp(transactionIndex)</code>，<code>value</code>是<code>rlp(transaction)</code></li>
+<li>Receipts Trie(交易收据树)<br>路径是<code>rlp(transactionIndex)</code>，<code>value</code>是<code>rlp(transaction receipt)</code></li>
+</ol>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://medium.com/shyft-network-media/understanding-trie-databases-in-ethereum-9f03d2c3325d" target="_blank" rel="noopener">Understanding Trie Databases in Ethereum</a><br><a href="https://github.com/ethereum/wiki/wiki/Patricia-Tree" target="_blank" rel="noopener">Modified Merkle Patricia Trie Specification (also Merkle Patricia Tree)</a></p>
 
         </div>
         
@@ -201,7 +255,7 @@
             <div class="level-start">
                 <div class="level-item">
                     <span class="is-size-6 has-text-grey has-mr-7">#</span>
-                    <a class="has-link-grey -link" href="/tags/以太坊-C-源码/">以太坊 C++ 源码</a>
+                    <a class="has-link-grey -link" href="/tags/以太坊/">以太坊</a>
                 </div>
             </div>
         </div>
@@ -263,16 +317,16 @@
     <div class="level post-navigation is-flex-wrap is-mobile">
         
         <div class="level-start">
-            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/07/04/以太坊C-源码解析（八）交易队列（一）/">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/07/11/从以太坊交易日志中监听智能合约事件event/">
                 <i class="level-item fas fa-chevron-left"></i>
-                <span class="level-item">以太坊C++源码解析（八）交易队列（一）</span>
+                <span class="level-item">从以太坊交易日志中监听智能合约事件event</span>
             </a>
         </div>
         
         
         <div class="level-end">
-            <a class="level level-item has-link-grey  article-nav-next" href="/2019/07/04/以太坊C-源码解析（五）区块链同步-6/">
-                <span class="level-item">以太坊C++源码解析（五）区块链同步(6)</span>
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/07/04/以太坊C-源码解析（九）区块头/">
+                <span class="level-item">以太坊C++源码解析（九）区块头</span>
                 <i class="level-item fas fa-chevron-right"></i>
             </a>
         </div>
@@ -544,7 +598,7 @@
             <div class="level-start has-text-centered-mobile">
                 <a class="footer-logo is-block has-mb-6" href="/">
                 
-                    <img src="/images/logo.svg" alt="以太坊C++源码解析（七）交易" height="28">
+                    <img src="/images/logo.svg" alt="明明白白以太坊Merkle Patricia Trie" height="28">
                 
                 </a>
                 <p class="is-size-7">
